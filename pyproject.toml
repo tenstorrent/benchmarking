@@ -1,0 +1,28 @@
+# Black formatting
+[tool.black]
+line-length = 120
+include = '\.pyi?$'
+extend-exclude = '''
+/(
+      .eggs         # exclude a few common directories in the
+    | .git          # root of the project
+    | .hg
+    | .mypy_cache
+    | .tox
+    | env
+    | _build
+    | buck-out
+    | build
+    | dist
+  )/
+'''
+
+# iSort
+[tool.isort]
+skip = ["env"]
+skip_gitignore = true
+profile = "black"
+line_length = 120
+multi_line_output = 3
+include_trailing_comma = true
+virtual_env = "env"

@@ -1,0 +1,18 @@
+pytorchcv==0.0.67  # For Osmr Repo imported models ex: MobileNet_v2
+vgg_pytorch==0.3.0  # VGG - HF model
+timm==0.6.12  # PyTorch Image Models
+sentencepiece==0.1.96  # text tokenizer for some NLP models
+scikit-image==0.20.0  # For DenseNet 121 HF XRay model
+torchxrayvision==0.0.39  # For DenseNet
+yolov5==7.0.9  # For YOLOv5
+evaluate==0.4.0  # Evaluation functions
+nltk==3.8.1  # For ROUGE evaluation
+rouge-score==0.1.2  # For ROUGE evaluation
+soundfile==0.12.1  # For Whisper
+librosa==0.10.0  # For Whisper
+numba==0.53.1  # For Whisper
+jiwer==3.0.2  # For WER evaluation
+pycocotools==2.0.6  # for YOLOv5 evaluation
+diffusers==0.14.0  # For Stable Diffusion
+einops==0.6.1  # For Falcon-7B
+datasets==2.16.1
