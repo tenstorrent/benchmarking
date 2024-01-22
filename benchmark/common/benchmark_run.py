@@ -9,6 +9,7 @@ from datetime import datetime
 from enum import Enum, auto
 from importlib.metadata import metadata
 
+import psutil
 import torch
 import transformers
 from diffusers import StableDiffusionPipeline
@@ -107,6 +108,7 @@ class BenchmarkRun:
         self.perf_unit_str = None
         self.perf_value = None
         self.tokenizer = None
+        self.peak_cpu_mem = 0
         # benchmark stats metadata
         self.count_prompt_tokens = False
         self.token_count_use_max_batch = False
@@ -117,6 +119,7 @@ class BenchmarkRun:
         self.benchmark_start_time = None
         self.benchmark_end_time = None
         self.benchmark_duration = None
+        self.stop_monitoring = False
         # initialize with environment metadata
         self.get_pybuda_metadata()
         self.get_device_metadata()
@@ -236,6 +239,12 @@ class BenchmarkRun:
         print(" Ending benchmark at ", time.asctime(time.localtime(self.benchmark_end_time)))
         print("*****************************************************")
 
+    def cpu_usage_monitor(self):
+        while not self.stop_monitoring:
+            cpu_usage = psutil.virtual_memory()[3] / (1000**3)
+            self.peak_cpu_mem = cpu_usage if cpu_usage > self.peak_cpu_mem else self.peak_cpu_mem
+            time.sleep(1)
+
     def calc_output_stats(self, output, model, eval_score):
         self.eval_score = eval_score
         # get number of tokens generated and samples outputs produced
@@ -301,6 +310,7 @@ class BenchmarkRun:
         output_stats_dict = {
             "total_run_time": self.benchmark_duration,
             "total_compilation_time": self.compilation_duration,
+            "peak_host_mem_usage": self.peak_cpu_mem,
             "total_samples": self.total_samples,
             "samples_per_sec": self.total_samples / self.benchmark_duration,
             "tokens_per_sec": self.total_tokens / self.benchmark_duration,
@@ -325,8 +335,9 @@ class BenchmarkRun:
     def print_output_stats(self):
         print("*****************************************************")
         print(" Device:", self.device_name)
-        print(f" Total compilation time: {self.compilation_duration:.4f}")
-        print(f" Total runtime for {self.total_samples} inputs: {self.benchmark_duration:.4f}")
+        print(f" Total compilation time (s): {self.compilation_duration:.4f}")
+        print(f" Peak host memory usage (GB): {self.peak_cpu_mem:.2f}")
+        print(f" Total runtime (s) for {self.total_samples} inputs: {self.benchmark_duration:.4f}")
         print(f" {self.perf_unit_str}: {self.perf_value:.2f}")
         print(f" Inference time (ms): {(self.benchmark_duration / (self.total_samples)) * 1000:.1f}")
         if self.total_tokens > 0:

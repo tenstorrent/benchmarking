@@ -182,6 +182,8 @@ def run(
                 exit(0)
 
             # Compilation run
+            monitor_thread = threading.Thread(target=benchmark_run.cpu_usage_monitor)
+            monitor_thread.start()
             benchmark_run.start_compilation_timer()
             output_q = pybuda.initialize_pipeline(
                 training=args.training,
@@ -189,7 +191,9 @@ def run(
                 _verify_cfg=pybuda.verify.VerifyConfig(verify_pybuda_codegen_vs_framework=True),
                 sample_targets=targets,
             )
+            benchmark_run.stop_monitoring = True
             benchmark_run.end_compilation_timer()
+            monitor_thread.join()
             if not benchmark_run.has_forward_wrapper:
                 # Prepare a thread pushing inputs
                 def push_inputs_thread():
@@ -258,10 +262,14 @@ def run(
                 time.sleep(2)  # Let the input thread start up and transfer initial data
         else:
             # Compilation loop for pybuda_pipeline models
+            monitor_thread = threading.Thread(target=benchmark_run.cpu_usage_monitor)
+            monitor_thread.start()
             benchmark_run.start_compilation_timer()
             sample_inputs = input_data[0][0]
             _ = model(sample_inputs, batch_size=args.microbatch)
+            benchmark_run.stop_monitoring = True
             benchmark_run.end_compilation_timer()
+            monitor_thread.join()
 
     if args.device == "tt" and isinstance(model, dict):
         benchmark_run.start_benchmark_timer()
