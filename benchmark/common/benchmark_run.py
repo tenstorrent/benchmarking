@@ -240,9 +240,10 @@ class BenchmarkRun:
         print("*****************************************************")
 
     def cpu_usage_monitor(self):
+        baseline_cpu_mem_usage = psutil.virtual_memory().used
         while not self.stop_monitoring:
-            cpu_usage = psutil.virtual_memory()[3] / (1000**3)
-            self.peak_cpu_mem = cpu_usage if cpu_usage > self.peak_cpu_mem else self.peak_cpu_mem
+            cpu_mem_usage = (psutil.virtual_memory().used - baseline_cpu_mem_usage) / (1000**2)
+            self.peak_cpu_mem = cpu_mem_usage if cpu_mem_usage > self.peak_cpu_mem else self.peak_cpu_mem
             time.sleep(1)
 
     def calc_output_stats(self, output, model, eval_score):
@@ -336,7 +337,7 @@ class BenchmarkRun:
         print("*****************************************************")
         print(" Device:", self.device_name)
         print(f" Total compilation time (s): {self.compilation_duration:.4f}")
-        print(f" Peak host memory usage (GB): {self.peak_cpu_mem:.2f}")
+        print(f" Peak host memory usage (MB): {self.peak_cpu_mem:.2f}")
         print(f" Total runtime (s) for {self.total_samples} inputs: {self.benchmark_duration:.4f}")
         print(f" {self.perf_unit_str}: {self.perf_value:.2f}")
         print(f" Inference time (ms): {(self.benchmark_duration / (self.total_samples)) * 1000:.1f}")
