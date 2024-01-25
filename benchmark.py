@@ -22,28 +22,45 @@ from diffusers import StableDiffusionPipeline
 from transformers.tokenization_utils_base import BatchEncoding
 
 # Models
+import benchmark.models.albert.albert
+import benchmark.models.beit.beit
 import benchmark.models.bert.bert
+import benchmark.models.conv_autoencoder.convae
 import benchmark.models.deit.deit
+import benchmark.models.densenet.densenet
+import benchmark.models.detr.detr
+import benchmark.models.distilbert.distilbert
+import benchmark.models.dpr.dpr
 import benchmark.models.falcon.falcon
 import benchmark.models.flant5.flant5
 import benchmark.models.flant5.flant5_past_cache_enc_dec
+import benchmark.models.googlenet.googlenet
+import benchmark.models.gpt2.gpt2
+import benchmark.models.gptneo.gptneo
 import benchmark.models.hrnet.hrnet
 import benchmark.models.inception_v4.inception_v4
+import benchmark.models.linear_autoencoder.linearae
 import benchmark.models.mobilenet_v1.mobilenet_v1
 import benchmark.models.mobilenet_v2.mobilenet_v2
 import benchmark.models.mobilenet_v2.mobilenet_v2_timm
 import benchmark.models.mobilenet_v3.mobilenet_v3
 import benchmark.models.open_pose.open_pose
+import benchmark.models.opt.opt
 import benchmark.models.resnet.resnet
+import benchmark.models.resnext.resnext
+import benchmark.models.roberta.roberta
+import benchmark.models.squeezebert.squeezebert
 import benchmark.models.stable_diffusion.stable_diffusion
 import benchmark.models.t5.t5
 import benchmark.models.t5.t5_past_cache_enc_dec
 import benchmark.models.unet.unet
+import benchmark.models.vgg.vgg
 import benchmark.models.vit.vit
 import benchmark.models.vovnet.vovnet_v1
 import benchmark.models.vovnet.vovnet_v2
 import benchmark.models.whisper.whisper
 import benchmark.models.whisper.whisper_enc_dec
+import benchmark.models.xglm.xglm
 import benchmark.models.yolo_v5.yolo_v5
 
 # Common functions
