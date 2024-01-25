@@ -1,8 +1,6 @@
 pytorchcv==0.0.67  # For Osmr Repo imported models ex: MobileNet_v2
-vgg_pytorch==0.3.0  # VGG - HF model
 timm==0.6.12  # PyTorch Image Models
 sentencepiece==0.1.96  # text tokenizer for some NLP models
-scikit-image==0.20.0  # For DenseNet 121 HF XRay model
 torchxrayvision==0.0.39  # For DenseNet
 yolov5==7.0.9  # For YOLOv5
 evaluate==0.4.0  # Evaluation functions
