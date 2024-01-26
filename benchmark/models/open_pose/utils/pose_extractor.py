@@ -1,3 +1,9 @@
+# SPDX-FileCopyrightText: Copyright (c) 2020 Daniil-Osokin
+#
+# SPDX-License-Identifier: Apache-2.0
+# SPDX-FileCopyrightText: Copyright (c) 2018-2021 Oleg Sémery
+#
+# SPDX-License-Identifier: MIT
 """
 # Summary:
 
@@ -20,6 +26,10 @@ This code implements the second part of the pipeline.
 
 For faster C++ implementation: https://github.com/Daniil-Osokin/lightweight-human-pose-estimation-3d-demo.pytorch/tree/master/pose_extractor
 adding support for this would complicate repo build steps, see setup.py in that repo
+
+---
+https://github.com/Daniil-Osokin/lightweight-human-pose-estimation.pytorch/blob/master/LICENSE
+https://github.com/osmr/imgclsmob/blob/master/LICENSE
 """
 
 import math

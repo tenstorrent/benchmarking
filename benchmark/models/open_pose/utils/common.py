@@ -1,3 +1,14 @@
+# SPDX-FileCopyrightText: Copyright (c) 2018-2021 Oleg Sémery
+#
+# SPDX-License-Identifier: MIT
+"""
+Preprocessing functions for OpenPose model.
+https://github.com/osmr/imgclsmob/blob/f2993d3ce73a2f7ddba05da3891defb08547d504/pytorch/datasets/coco_hpe2_dataset.py
+
+---
+https://github.com/osmr/imgclsmob/blob/f2993d3ce73a2f7ddba05da3891defb08547d504/LICENSE
+"""
+
 import math
 
 import cv2
@@ -5,11 +16,6 @@ import numpy as np
 import torch
 from pycocotools.coco import COCO
 from pycocotools.cocoeval import COCOeval
-
-"""
-Preprocessing functions for OpenPose model.
-https://github.com/osmr/imgclsmob/blob/f2993d3ce73a2f7ddba05da3891defb08547d504/pytorch/datasets/coco_hpe2_dataset.py
-"""
 
 
 def normalize(img, img_mean, img_scale):

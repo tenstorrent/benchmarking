@@ -1,9 +1,15 @@
+# SPDX-FileCopyrightText: Copyright (c) 2019 mateuszbuda
+#
+# SPDX-License-Identifier: MIT
 """
 These util functions are from original implementation
 see: https://github.com/mateuszbuda/brain-segmentation-pytorch/blob/master/utils.py
 
 A faster implementation of resize_sample (fast_resize_sample) can be used to
 speed up testing.
+
+---
+https://raw.githubusercontent.com/mateuszbuda/brain-segmentation-pytorch/master/LICENSE
 """
 
 import numpy as np

@@ -1,5 +1,7 @@
 #!/usr/bin/env python3
 
+# SPDX-FileCopyrightText: © 2023 Tenstorrent Inc.
+# SPDX-License-Identifier: Apache-2.0
 #
 # Compare two lists of tensors dumped into pickle files. Mainly meant to be
 # used for intermediate tensors dumped from benchmark.py with -di

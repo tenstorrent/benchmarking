@@ -1,3 +1,6 @@
+# SPDX-FileCopyrightText: © 2023 Tenstorrent Inc.
+# SPDX-License-Identifier: Apache-2.0
+
 import torch
 from datasets import load_dataset
 from pytorchcv.model_provider import get_model as ptcv_get_model
