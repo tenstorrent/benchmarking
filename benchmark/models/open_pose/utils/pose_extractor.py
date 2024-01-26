@@ -1,9 +1,10 @@
-# SPDX-FileCopyrightText: Copyright (c) 2020 Daniil-Osokin
-#
 # SPDX-License-Identifier: Apache-2.0
-# SPDX-FileCopyrightText: Copyright (c) 2018-2021 Oleg Sémery
-#
+# SPDX-FileCopyrightText: Copyright (c) 2020 Daniil-Osokin
+# SDPX—SnippetName: extract_keypoints, group_keypoints from https://github.com/Daniil-Osokin/lightweight-human-pose-estimation.pytorch/blob/master/modules/keypoints.py
+
 # SPDX-License-Identifier: MIT
+# SPDX-FileCopyrightText: Copyright (c) 2018-2021 Oleg Sémery
+# SDPX—SnippetName: recalc_pose, convert_to_coco_format from https://github.com/osmr/imgclsmob/blob/master/pytorch/datasets/coco_hpe2_dataset.py
 """
 # Summary:
 
@@ -12,7 +13,7 @@ from: https://github.com/Daniil-Osokin/lightweight-human-pose-estimation.pytorch
 and: https://github.com/Daniil-Osokin/lightweight-human-pose-estimation-3d-demo.pytorch/blob/master/modules/legacy_pose_extractor.py
 and: https://github.com/osmr/imgclsmob/blob/master/pytorch/datasets/coco_hpe2_dataset.py
 
-The original code is licensed under the Apache-2.0 license.
+The original code is licensed under the Apache-2.0 and MIT licenses.
 
 Paper: https://arxiv.org/pdf/1811.12004.pdf
 ```
