@@ -188,3 +188,14 @@
       of your accepting any such warranty or additional liability.
 
    END OF TERMS AND CONDITIONS
+
+-------------------------------------------------------------------------------
+
+Third-Party Dependencies:
+
+The following dependencies are utilized by this project but are not explicitly
+distributed as part of the software:
+
+- osmr - [License available here](https://github.com/osmr/imgclsmob/blob/master/LICENSE)
+- Daniil-Osokin - [License available here](https://github.com/Daniil-Osokin/lightweight-human-pose-estimation.pytorch/blob/master/LICENSE)
+- transformers - [License available here](https://github.com/huggingface/transformers/blob/main/LICENSE)
