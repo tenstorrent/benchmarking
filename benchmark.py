@@ -34,6 +34,7 @@ import benchmark.models.dpr.dpr
 import benchmark.models.falcon.falcon
 import benchmark.models.flant5.flant5
 import benchmark.models.flant5.flant5_past_cache_enc_dec
+import benchmark.models.ghostnet.ghostnet
 import benchmark.models.googlenet.googlenet
 import benchmark.models.gpt2.gpt2
 import benchmark.models.gptneo.gptneo
