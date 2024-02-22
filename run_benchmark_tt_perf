@@ -101,6 +101,11 @@ python benchmark.py -d tt -m unet -c 256 --task segmentation -mb 48 --loop_count
 # Inception-v4 - Image Classification - ImageNet
 python benchmark.py -d tt -m inception_v4 -c 224 --task image_classification -mb 64 --loop_count 8 --save_output
 
+# Ghostnet - No Task (na) - Dummy Data
+python benchmark.py -d tt -m ghostnet -c ghostnet_100 --task na --loop_count 1 --save_output
+# Ghostnet - Image Classification - ImageNet
+python benchmark.py -d tt -m ghostnet -c ghostnet_100 --task image_classification  --loop_count 1 --save_output
+
 # Whisper - ASR - LibriSpeech
 python benchmark.py -d tt -m whisper_enc_dec -c small --task asr -mb 1 --loop_count 1 --save_output
 
