@@ -62,6 +62,7 @@ import benchmark.models.vovnet.vovnet_v2
 import benchmark.models.whisper.whisper
 import benchmark.models.whisper.whisper_enc_dec
 import benchmark.models.wideresnet.wideresnet
+import benchmark.models.xception.xception
 import benchmark.models.xglm.xglm
 import benchmark.models.yolo_v5.yolo_v5
 
