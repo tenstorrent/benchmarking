@@ -1,4 +1,4 @@
-# SPDX-FileCopyrightText: © 2023 Tenstorrent Inc.
+# SPDX-FileCopyrightText: © 2024 Tenstorrent AI ULC
 # SPDX-License-Identifier: Apache-2.0
 
 import os
@@ -14,7 +14,6 @@ from ...common import (
     torch_df_from_str,
 )
 import torch
-from pybuda._C.backend_api import BackendDevice
 
 
 @benchmark_model(configs=["xception", "xception41", "xception71", "xception65"])
@@ -23,6 +22,7 @@ def xception(
 ):
     if device == "tt":
         import pybuda
+        from pybuda._C.backend_api import BackendDevice
 
         # Configurations
         compiler_cfg = (
