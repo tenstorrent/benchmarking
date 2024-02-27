@@ -2,6 +2,7 @@
 # SPDX-License-Identifier: Apache-2.0
 
 import re
+import os
 
 from diffusers import StableDiffusionPipeline
 from torch.utils.data import DataLoader
@@ -15,6 +16,22 @@ from ...common import BenchmarkRun, DummyPipelineDataset, benchmark_model, torch
 def stable_diffusion(
     training: bool, task: str, config: str, microbatch: int, device: str, data_type: str, benchmark_run: BenchmarkRun
 ):
+    import pybuda
+    compiler_cfg = pybuda.config._get_global_compiler_config()
+        
+    if compiler_cfg.balancer_policy == "default":
+        compiler_cfg.balancer_policy = "Ribbon"
+        os.environ["PYBUDA_RIBBON2"] = "1"
+
+    os.environ["TT_BACKEND_OVERLAY_MAX_EXTRA_BLOB_SIZE"] = f"{14*1024}"
+    os.environ["PYBUDA_TEMP_ENABLE_NEW_FUSED_ESTIMATES"] = "1"
+    os.environ["PYBUDA_TEMP_SCALE_SPARSE_ESTIMATE_ARGS"] = "1"
+    os.environ["PYBUDA_RIBBON2_CALCULATE_TARGET_CYCLES"] = "1"
+    os.environ["PYBUDA_TEMP_ENABLE_NEW_SPARSE_ESTIMATES"] = "1"
+
+    pybuda.config.override_op_size("layernorm_2036.dc.multiply.4", (2, 1))
+    pybuda.config.override_op_size("layernorm_2196.dc.multiply.4", (2, 1))
+
     # Set model parameters based on chosen task and model configuration
     if task in ["na", "image_generation"]:
         if config == "v1-4":

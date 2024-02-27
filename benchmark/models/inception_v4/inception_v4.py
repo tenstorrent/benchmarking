@@ -22,20 +22,16 @@ def inception_v4(training: bool, task: str, config: str, microbatch: int, device
 
         # Configurations
         compiler_cfg = pybuda.config._get_global_compiler_config()  # load global compiler config object
-        compiler_cfg.enable_t_streaming = True
-        compiler_cfg.enable_auto_transposing_placement = True
-        compiler_cfg.balancer_policy = "Ribbon"
 
-        available_devices = pybuda.detect_available_devices()
-        if available_devices:
-            if available_devices[0] == BackendDevice.Grayskull:
-                os.environ["PYBUDA_DISABLE_PADDING_PASS"] = "1"
-            elif available_devices[0] == BackendDevice.Wormhole_B0:
-                os.environ["PYBUDA_RIBBON2"] = "1"
-                os.environ["PYBUDA_RIBBON2_OPTIMIZATION_ITERATIONS"] = "10"
-                os.environ["PYBUDA_SPARSE_ENABLE_LAYOUT_DATAFLOW"] = "1"
-
-                os.environ["PYBUDA_DISABLE_CONV_MULTI_OP_FRACTURE"] = "1"
+        if compiler_cfg.balancer_policy == "default":
+            compiler_cfg.balancer_policy = "Ribbon"
+            os.environ["PYBUDA_RIBBON2"] = "1"
+            os.environ["PYBUDA_TEMP_ENABLE_NEW_FUSED_ESTIMATES"] = "1"
+            if data_type != "Bfp8_b":
+                os.environ["PYBUDA_TEMP_ENABLE_NEW_SPARSE_ESTIMATES"] = "1"
+                os.environ["PYBUDA_OP_MODEL_COMPARE_VERSION"] = "1"
+            else:
+                os.environ["PYBUDA_TEMP_SCALE_SPARSE_ESTIMATE_ARGS"] = "1"
 
     if config == "224":
         model_name = "inception_v4"

@@ -14,6 +14,8 @@ from transformers import (
     WhisperTokenizer,
 )
 
+from transformers.modeling_attn_mask_utils import _prepare_4d_causal_attention_mask
+
 
 class Whisper_encoder(torch.nn.Module):
     def __init__(self, model):
@@ -38,7 +40,7 @@ class Whisper_decoder(torch.nn.Module):
         input_embeds = self.model.model.decoder.embed_tokens(decoder_input_ids)
         hidden_states = input_embeds + position_embeds
 
-        attention_mask = self.model.model.decoder._prepare_decoder_attention_mask(
+        attention_mask = _prepare_4d_causal_attention_mask(
             decoder_attention_mask, decoder_input_ids.size(), input_embeds, past_key_values[0].shape[2]
         )
 
@@ -79,7 +81,6 @@ def generate_model_whisper_enc_dec(variant):
     compiler_cfg.input_queues_on_host = True
     compiler_cfg.compile_subgraphs = True
     compiler_cfg.enable_link_past_cache_ios = True
-    compiler_cfg.backend_opt_level = 3
     compiler_cfg.default_df_override = pybuda._C.DataFormat.Float16_b
 
     os.environ["PYBUDA_FORCE_SEQUENTIAL"] = "1"
@@ -88,24 +89,22 @@ def generate_model_whisper_enc_dec(variant):
         if available_devices[0] == BackendDevice.Wormhole_B0:
             compiler_cfg.enable_auto_fusing = False
             compiler_cfg.amp_level = 0
+            compiler_cfg.backend_opt_level = 3
             os.environ["TT_BACKEND_OVERLAY_MAX_EXTRA_BLOB_SIZE"] = "28672"  # 28 * 1024
             os.environ["PYBUDA_DISABLE_STREAM_OUTPUT"] = "1"  # Disable streaming for LM head to output queue (perf)
+            os.environ["TT_BACKEND_MULTI_THREADED_PUSH"] = "1"
+            os.environ["TT_BACKEND_DRAM_POLLING_FREQUENCY"] = "64"
+            os.environ["TT_BACKEND_PROFILER"] = "1"
+            os.environ["PYBUDA_NOP_ON_DIRECT_SHORT_PATH"] = "1"
 
     os.environ["PYBUDA_PAD_OUTPUT_BUFFER"] = "1"
     os.environ["PYBUDA_PAD_OUTPUT_BUFFER_THRESHOLD_TILES"] = "1536"
 
     os.environ["PYBUDA_DISABLE_DYNAMIC_DRAM"] = "1"
-    os.environ["TT_BACKEND_MULTI_THREADED_PUSH"] = "1"
-    os.environ["TT_BACKEND_DRAM_POLLING_FREQUENCY"] = "64"
-    os.environ["TT_BACKEND_PROFILER"] = "1"
-    os.environ["PYBUDA_NOP_ON_DIRECT_SHORT_PATH"] = "1"
 
     if variant == "openai/whisper-base":
         os.environ["PYBUDA_GRAPHSOLVER_SELF_CUT_TYPE"] = "None"
         compiler_cfg.enable_auto_fusing = False
-
-    if variant == "openai/whisper-large" or variant == "openai/whisper-medium":
-        os.environ["TT_BACKEND_OVERLAY_MAX_EXTRA_BLOB_SIZE"] = "0"
 
     # pybuda.set_configuration_options(performance_trace=pybuda.PerfTraceLevel.VERBOSE)
     processor = AutoProcessor.from_pretrained(variant)

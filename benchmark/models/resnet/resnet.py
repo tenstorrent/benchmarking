@@ -19,22 +19,27 @@ def resnet(training: bool, task: str, config: str, microbatch: int, device: str,
         from pybuda._C.backend_api import BackendDevice
 
         compiler_cfg = pybuda.config._get_global_compiler_config()
-        compiler_cfg.enable_t_streaming = True
         compiler_cfg.enable_auto_transposing_placement = True
 
         if compiler_cfg.balancer_policy == "default":
             compiler_cfg.balancer_policy = "Ribbon"
             os.environ["PYBUDA_RIBBON2"] = "1"
-            os.environ["PYBUDA_RIBBON2_OPTIMIZATION_ITERATIONS"] = "10"
 
-        os.environ["PYBUDA_TEMP_ELT_UNARY_ESTIMATES_LEGACY"] = "1"
+            # These are about to be enabled by default.
+            #
+            os.environ["PYBUDA_TEMP_ENABLE_NEW_FUSED_ESTIMATES"] = "1"
+            os.environ["PYBUDA_TEMP_SCALE_SPARSE_ESTIMATE_ARGS"] = "1"
+            os.environ["PYBUDA_RIBBON2_CALCULATE_TARGET_CYCLES"] = "1"
+            if data_type != "Bfp8_b":
+                os.environ["PYBUDA_TEMP_ENABLE_NEW_SPARSE_ESTIMATES"] = "1"
+
         os.environ["PYBUDA_DISABLE_DYNAMIC_DRAM"] = "1"
 
-        if pybuda.detect_available_devices()[0] == BackendDevice.Wormhole_B0:
-            os.environ["PYBUDA_FORCE_CONV_MULTI_OP_FRACTURE"] = "1"
-        elif pybuda.detect_available_devices()[0] == BackendDevice.Grayskull:
+        if pybuda.detect_available_devices()[0] != BackendDevice.Wormhole_B0:
             os.environ["PYBUDA_EXTRA_L1_MARGIN"] = "100000"
-            os.environ["TT_BACKEND_OVERLAY_MAX_EXTRA_BLOB_SIZE"] = f"{77*1024}"
+
+        if pybuda.detect_available_devices()[0] == BackendDevice.Grayskull:
+            pybuda.config.override_op_size("conv2d_726.dc.sparse_matmul.9.dc.sparse_matmul.1.lc2", (6, 1))
 
     # Set model parameters based on chosen task and model configuration
     if config == "resnet18":

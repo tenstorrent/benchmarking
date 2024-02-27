@@ -21,29 +21,28 @@ def vovnet_v2(training: bool, task: str, config: str, microbatch: int, device: s
         from pybuda._C.backend_api import BackendDevice
 
         compiler_cfg = pybuda.config._get_global_compiler_config()
-        compiler_cfg.enable_t_streaming = True
 
         if compiler_cfg.balancer_policy == "default":
             compiler_cfg.balancer_policy = "Ribbon"
-            os.environ["PYBUDA_RIBBON2"] = "1"
+            os.environ["PYBUDA_RIBBON2"] = "1" 
 
         os.environ["PYBUDA_DISABLE_EXPLICIT_DRAM_IO"] = "1"
-        os.environ["PYBUDA_TEMP_ELT_UNARY_ESTIMATES_LEGACY"] = "1"
 
-        # Device specific configurations
-        available_devices = pybuda.detect_available_devices()
-        if available_devices:
+        # These are about to be enabled by default.
+        #
+        if data_type != "Bfp8_b":
+            os.environ["PYBUDA_TEMP_ENABLE_NEW_SPARSE_ESTIMATES"] = "1"
+            os.environ["PYBUDA_TEMP_SCALE_SPARSE_ESTIMATE_ARGS"] = "1"
+            os.environ["PYBUDA_RIBBON2_CALCULATE_TARGET_CYCLES"] = "1"
 
-            if compiler_cfg.balancer_policy == "default":
-                compiler_cfg.balancer_policy = "Ribbon"
+        os.environ["PYBUDA_TEMP_ENABLE_NEW_FUSED_ESTIMATES"] = "1"
 
-            if compiler_cfg.balancer_policy == "Ribbon":
-                os.environ["PYBUDA_RIBBON2"] = "1"
-                if available_devices[0] == BackendDevice.Grayskull:
-                    os.environ["TT_BACKEND_OVERLAY_MAX_EXTRA_BLOB_SIZE"] = f"{36*1024}"
+        if config == "39" and data_type != "Bfp8_b":
+            compiler_cfg.enable_amp_light()
 
-            if compiler_cfg.balancer_policy == "CNN":
-                os.environ["TT_BACKEND_OVERLAY_MAX_EXTRA_BLOB_SIZE"] = f"{3*1024}"
+        if data_type == "Bfp8_b":
+            # tenstorrent/pybuda#2228
+            os.environ["PYBUDA_LEGACY_KERNEL_BROADCAST"] = "1"
 
     # Set model parameters based on chosen task and model configuration
     img_res = 224

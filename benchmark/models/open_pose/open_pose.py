@@ -22,17 +22,23 @@ def open_pose(training: bool, task: str, config: str, microbatch: int, device: s
 
         # Configurations
         compiler_cfg = pybuda.config._get_global_compiler_config()
-        compiler_cfg.enable_t_streaming = True
         compiler_cfg.enable_auto_transposing_placement = True
 
         if compiler_cfg.balancer_policy == "default":
             compiler_cfg.balancer_policy = "Ribbon"
-            os.environ["PYBUDA_RIBBON2"] = "1"
+            os.environ["PYBUDA_RIBBON2"] = "1" 
 
-        os.environ["PYBUDA_SUPRESS_T_FACTOR_MM"] = "16"
-        os.environ["PYBUDA_RIBBON2_OPTIMIZATION_ITERATIONS"] = "10"
-        os.environ["PYBUDA_LEGACY_UBLOCK_SHAPE"] = "1"
-        os.environ["TT_BACKEND_OVERLAY_MAX_EXTRA_BLOB_SIZE"] = "65536"
+        os.environ["PYBUDA_SUPRESS_T_FACTOR_MM"] = "13"
+
+        # These are about to be enabled by default.
+        #
+        if data_type != "Bfp8_b":
+            os.environ["PYBUDA_TEMP_ENABLE_NEW_SPARSE_ESTIMATES"] = "1"
+        else:
+            # tenstorrent/pybuda#2228
+            os.environ["PYBUDA_LEGACY_KERNEL_BROADCAST"] = "1"
+
+        os.environ["PYBUDA_TEMP_ENABLE_NEW_FUSED_ESTIMATES"] = "1"
 
     # Set model parameters based on chosen task and model configuration
     model_name = ""

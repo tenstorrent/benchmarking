@@ -18,7 +18,6 @@ def mobilenetv1(training: bool, task: str, config: str, microbatch: int, device:
         import pybuda
 
         compiler_cfg = pybuda.config._get_global_compiler_config()
-        compiler_cfg.enable_t_streaming = True
         compiler_cfg.enable_auto_transposing_placement = True
 
         if compiler_cfg.balancer_policy == "default":
@@ -26,8 +25,19 @@ def mobilenetv1(training: bool, task: str, config: str, microbatch: int, device:
             os.environ["PYBUDA_RIBBON2"] = "1"
 
         os.environ["PYBUDA_SUPRESS_T_FACTOR_MM"] = "8"
-        os.environ["PYBUDA_LEGACY_UBLOCK_SHAPE"] = "1"
-        os.environ["PYBUDA_MAXIMIZE_SPARSE_UBLOCK"] = "1"
+
+        # These are about to be enabled by default.
+        #
+        os.environ["PYBUDA_TEMP_ENABLE_NEW_FUSED_ESTIMATES"] = "1"
+        if data_type != "Bfp8_b":
+            os.environ["PYBUDA_TEMP_ENABLE_NEW_SPARSE_ESTIMATES"] = "1"
+
+        if data_type == "Bfp8_b":
+            # tenstorrent/pybuda#2228
+            os.environ["PYBUDA_LEGACY_KERNEL_BROADCAST"] = "1"
+            pybuda.config.configure_mixed_precision(name_regex="input.*add.*", output_df=pybuda.DataFormat.Float16_b)
+            pybuda.config.configure_mixed_precision(op_type="add", output_df=pybuda.DataFormat.Float16_b)
+            pybuda.config.configure_mixed_precision(op_type="depthwise", output_df=pybuda.DataFormat.Float16_b)
 
     # Set model parameters based on chosen task and model configuration
     if config == "192":
