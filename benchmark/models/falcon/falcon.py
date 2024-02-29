@@ -17,7 +17,7 @@ from ...common import BenchmarkRun, DummyPipelineDataset, PipelineDataset, bench
 torch.manual_seed(42)
 
 
-@benchmark_model(configs=["7b", "7b-instruct"], has_api=True)
+@benchmark_model(configs=["7b", "7b-instruct", "40b", "40b-instruct"], has_api=True)
 def falcon(
     training: bool, task: str, config: str, microbatch: int, device: str, data_type: str, benchmark_run: BenchmarkRun
 ):
@@ -28,6 +28,10 @@ def falcon(
             model_name = "tiiuae/falcon-7b"
         elif config == "7b-instruct":
             model_name = "tiiuae/falcon-7b-instruct"
+        elif config == "40b":
+            model_name = "tiiuae/falcon-40b"
+        elif config == "40b-instruct":
+            model_name = "tiiuae/falcon-40b-instruct"
         else:
             raise RuntimeError("Unknown config")
     else:
