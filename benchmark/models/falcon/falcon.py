@@ -84,14 +84,16 @@ def falcon(
         # using prefill via decode on TT device
         benchmark_run.count_prompt_tokens = True
     elif device == "api":
-        if task in ["hellaswag"]:
+        if task in ["hellaswag", "text_summarization"]:
             raise RuntimeError(f"{task} is not supported with {device} at the moment.")
         else:
+            assert microbatch == 1, "microbatch must be 1 for API"
             tokenizer = AutoTokenizer.from_pretrained(model_name, padding_side="left")
             tokenizer.pad_token_id = tokenizer.eos_token_id
             benchmark_run.tokenizer = tokenizer
             model = None
-            benchmark_run.count_prompt_tokens = True
+            benchmark_run.compute_prefill_metrics = True
+            benchmark_run.max_new_tokens = 256
     else:
         device = 0 if device == "cuda" else -1
         tokenizer = AutoTokenizer.from_pretrained(model_name, padding_side="left")
@@ -280,7 +282,7 @@ def falcon(
         # NOTE: requires alpaca-eval==0.3.0 and Python>=3.10 for scoring
 
         # AlpacaEval dataset
-        eval_set = load_dataset("tatsu-lab/alpaca_eval", "alpaca_eval", split="eval[:2]", trust_remote_code=True)
+        eval_set = load_dataset("tatsu-lab/alpaca_eval", "alpaca_eval", split="eval[:128]", trust_remote_code=True)
         eval_set = list(eval_set)
         dataset = PipelineDataset(dataset=eval_set, input_text="instruction", label="output")
         # add prompt token lengths for removal from stats
@@ -304,13 +306,10 @@ def falcon(
 
             outputs = []
             for pred, input in zip(pred_labels, eval_set):
-                if not benchmark_run.count_prompt_tokens:
-                    prompt_len = len(tokenizer(input["instruction"], return_tensors="pt")["input_ids"].squeeze())
-                    pred_ids = tokenizer(pred, return_tensors="pt")["input_ids"].squeeze()
-                    pred_only = pred_ids[prompt_len:]
-                    output = tokenizer.decode(pred_only).lstrip()
-                else:
-                    output = pred
+                prompt_len = len(tokenizer(input["instruction"], return_tensors="pt")["input_ids"].squeeze())
+                pred_ids = tokenizer(pred, return_tensors="pt")["input_ids"].squeeze()
+                pred_only = pred_ids[prompt_len:]
+                output = tokenizer.decode(pred_only).lstrip()
 
                 test_case = f"falcon-7b-instruct-{device}"
 
