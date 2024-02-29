@@ -1,4 +1,4 @@
-# SPDX-FileCopyrightText: © 2023 Tenstorrent Inc.
+# SPDX-FileCopyrightText: © 2024 Tenstorrent AI ULC
 # SPDX-License-Identifier: Apache-2.0
 
 from collections import defaultdict
@@ -17,7 +17,7 @@ from ...common import BenchmarkRun, DummyPipelineDataset, PipelineDataset, bench
 torch.manual_seed(42)
 
 
-@benchmark_model(configs=["7b", "7b-instruct"])
+@benchmark_model(configs=["7b", "7b-instruct"], has_api=True)
 def falcon(
     training: bool, task: str, config: str, microbatch: int, device: str, data_type: str, benchmark_run: BenchmarkRun
 ):
@@ -83,7 +83,15 @@ def falcon(
         benchmark_run.token_count_use_max_batch = True
         # using prefill via decode on TT device
         benchmark_run.count_prompt_tokens = True
-
+    elif device == "api":
+        if task in ["hellaswag"]:
+            raise RuntimeError(f"{task} is not supported with {device} at the moment.")
+        else:
+            tokenizer = AutoTokenizer.from_pretrained(model_name, padding_side="left")
+            tokenizer.pad_token_id = tokenizer.eos_token_id
+            benchmark_run.tokenizer = tokenizer
+            model = None
+            benchmark_run.count_prompt_tokens = True
     else:
         device = 0 if device == "cuda" else -1
         tokenizer = AutoTokenizer.from_pretrained(model_name, padding_side="left")
@@ -272,7 +280,7 @@ def falcon(
         # NOTE: requires alpaca-eval==0.3.0 and Python>=3.10 for scoring
 
         # AlpacaEval dataset
-        eval_set = load_dataset("tatsu-lab/alpaca_eval", "alpaca_eval", split="eval[:128]")
+        eval_set = load_dataset("tatsu-lab/alpaca_eval", "alpaca_eval", split="eval[:2]", trust_remote_code=True)
         eval_set = list(eval_set)
         dataset = PipelineDataset(dataset=eval_set, input_text="instruction", label="output")
         # add prompt token lengths for removal from stats
@@ -295,18 +303,16 @@ def falcon(
                 true_labels.extend(label)
 
             outputs = []
-            num_tokens = max_new_tokens
             for pred, input in zip(pred_labels, eval_set):
-                prompt_len = len(tokenizer(input["instruction"], return_tensors="pt")["input_ids"].squeeze())
-                pred_ids = tokenizer(pred, return_tensors="pt")["input_ids"].squeeze()
-                pred_only = pred_ids[prompt_len:]
-                output = tokenizer.decode(pred_only).lstrip()
+                if not benchmark_run.count_prompt_tokens:
+                    prompt_len = len(tokenizer(input["instruction"], return_tensors="pt")["input_ids"].squeeze())
+                    pred_ids = tokenizer(pred, return_tensors="pt")["input_ids"].squeeze()
+                    pred_only = pred_ids[prompt_len:]
+                    output = tokenizer.decode(pred_only).lstrip()
+                else:
+                    output = pred
 
-                test_case = (
-                    f"falcon-7b-instruct-wh-{num_tokens}tk"
-                    if device == "tt"
-                    else f"falcon-7b-instruct-a2-{num_tokens}tk"
-                )
+                test_case = f"falcon-7b-instruct-{device}"
 
                 outputs.append(
                     {
