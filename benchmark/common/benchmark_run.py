@@ -99,6 +99,7 @@ class BenchmarkRun:
         self.machine_name = None
         self.api_url = None
         self.api_key = None
+        self.max_new_tokens = None
         # model metadata
         self.model_name = None
         self.model_type = None
@@ -118,9 +119,12 @@ class BenchmarkRun:
         self.perf_value = None
         self.tokenizer = None
         self.peak_cpu_mem = 0
+        self.prefill_tokens_count = 0
+        self.prefill_perf = 0
         # benchmark stats metadata
         self.count_prompt_tokens = False
         self.token_count_use_max_batch = False
+        self.compute_prefill_metrics = False
         # timers
         self.compilation_start_time = None
         self.compilation_end_time = None
@@ -128,6 +132,7 @@ class BenchmarkRun:
         self.benchmark_start_time = None
         self.benchmark_end_time = None
         self.benchmark_duration = 0
+        self.prefill_duration = 0
         self.stop_monitoring = False
         # initialize with environment metadata
         self.get_pybuda_metadata()
@@ -265,11 +270,15 @@ class BenchmarkRun:
             print("Error: API_KEY environment variable is not set.")
             exit(1)
 
-    def run_api_benchmark(self, batch):
+    def run_api_benchmark(self, batch) -> str:
+        # Prepare data
         headers = {"Authorization": self.api_key}
+        data = {"text": batch[0], "max_tokens": self.max_new_tokens}
         output = ""
         response_times = []
-        data = {"text": batch}
+
+        # Collect responses
+        start_time = time.time()
         with requests.post(self.api_url, headers=headers, json=data, stream=True) as response:
             # Ensure a successful response
             if response.status_code == 200:
@@ -280,8 +289,23 @@ class BenchmarkRun:
                         output += str(chunk.decode("utf-8"))
             else:
                 print("Error: Failed to fetch response. Status Code:", response.status_code)
-        self.benchmark_duration += response_times[-1] - response_times[0]
-        return output
+        # Iterating through the response contents will return a timestamp when each chunk was returned.
+        # The timestamp of the first returned chunk is the "time to first token" and the timestamp of the
+        # last returned chunk is the end of the response.
+        # Therefore, if we take the difference between the last timestamp and the first timestamp, we get
+        # the total decode time or time spent on decode.
+        self.benchmark_duration += response_times[-1] - response_times[0]  # total decode duration
+
+        # Store prefill metrics
+        if self.compute_prefill_metrics:
+            # For LLMs, we may want to compute the prefill metrics
+            # This is the time that it takes the model to process the input prompt
+            # or "prefill" the KV-cache of the model.
+            # It can be measured as the time it takes to receive the first response chunk
+            # divided by the number of tokens in the prompt.
+            self.prefill_tokens_count += len(self.tokenizer.encode(batch[0]))
+            self.prefill_duration += response_times[0] - start_time
+        return batch[0] + output  # return prompt + response
 
     def calc_output_stats(self, output, model, eval_score):
         self.eval_score = eval_score
@@ -339,6 +363,8 @@ class BenchmarkRun:
 
             self.perf_value = self.total_tokens / self.benchmark_duration
             self.perf_unit_str = "Tokens/sec"
+            if self.compute_prefill_metrics:
+                self.prefill_perf = self.prefill_tokens_count / self.prefill_duration
         else:
             self.perf_value = self.total_samples / self.benchmark_duration
             self.perf_unit_str = "Samples/sec"
@@ -352,6 +378,7 @@ class BenchmarkRun:
             "total_samples": self.total_samples,
             "samples_per_sec": self.total_samples / self.benchmark_duration,
             "tokens_per_sec": self.total_tokens / self.benchmark_duration,
+            "prefill_tokens_per_sec": self.prefill_perf,
             "inference_time_ms": self.benchmark_duration * 1000 / (self.total_samples),
             "evaluation_score": self.eval_score,
             "input_size": self.get_input_shape_str(),
@@ -377,6 +404,8 @@ class BenchmarkRun:
         print(f" Peak host memory usage (MB): {self.peak_cpu_mem:.2f}")
         print(f" Total runtime (s) for {self.total_samples} inputs: {self.benchmark_duration:.4f}")
         print(f" {self.perf_unit_str}: {self.perf_value:.2f}")
+        if self.compute_prefill_metrics:
+            print(f" Prefill ({self.perf_unit_str}): {self.prefill_perf:.2f}")
         print(f" Inference time (ms): {(self.benchmark_duration / (self.total_samples)) * 1000:.1f}")
         if self.total_tokens > 0:
             print(f" Total tokens generated: {self.total_tokens}")
