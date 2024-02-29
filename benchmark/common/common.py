@@ -1,4 +1,4 @@
-# SPDX-FileCopyrightText: © 2023 Tenstorrent Inc.
+# SPDX-FileCopyrightText: © 2024 Tenstorrent AI ULC
 # SPDX-License-Identifier: Apache-2.0
 
 import functools
@@ -13,14 +13,20 @@ import transformers
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.INFO)
 
+API_MODELS = []
 MODELS = {}
 
 
 # decorator
-def benchmark_model(configs=[]):
+def benchmark_model(configs=[], has_api=False):
     def benchmark_decorator(model_func):
         name = model_func.__name__
+        global API_MODELS
         global MODELS
+
+        # Track which models have API available for testing
+        if has_api:
+            API_MODELS.append(name)
 
         @functools.wraps(model_func)
         def wrapper(*args, benchmark_run=None, **kwargs):
@@ -171,3 +177,7 @@ def store_model_output(model, benchmark_run, output, labels):
 
 def get_models():
     return MODELS
+
+
+def get_api_models():
+    return API_MODELS

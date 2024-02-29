@@ -1,4 +1,4 @@
-# SPDX-FileCopyrightText: © 2023 Tenstorrent Inc.
+# SPDX-FileCopyrightText: © 2024 Tenstorrent AI ULC
 # SPDX-License-Identifier: Apache-2.0
 
 import argparse
@@ -47,7 +47,7 @@ import benchmark.models.whisper.whisper_enc_dec
 import benchmark.models.yolo_v5.yolo_v5
 
 # Common functions
-from benchmark.common import get_models, store_model_output, torch_df_from_str
+from benchmark.common import get_api_models, get_models, store_model_output, torch_df_from_str
 from benchmark.common.benchmark_run import BenchmarkRun
 
 sys.path.append(".")
@@ -292,6 +292,16 @@ def run(
                 "machine_name": benchmark_run.machine_name,
                 "pybuda_hash": benchmark_run.pybuda_hash,
             }
+    elif args.device == "api":
+        # Load API metadata from ENV
+        benchmark_run.get_api_metadata()
+
+        # Send request to the API
+        for batch, labels in input_data:
+            store_labels.append(labels)
+            output = benchmark_run.run_api_benchmark(batch=batch)
+            store_outputs.append([output])
+
     else:
         # cuda, CPU, or TT device with pybuda_pipeline implementations
         benchmark_run.start_benchmark_timer()
@@ -339,7 +349,7 @@ if __name__ == "__main__":
         help="Model configuration to benchmark (i.e. tiny, base, large)",
     )
     parser.add_argument("--task", help="Model task (i.e. na, text_classification)")
-    parser.add_argument("-d", "--device", help="Device to benchmark (i.e. tt, cpu, cuda)", default="tt")
+    parser.add_argument("-d", "--device", help="Device to benchmark (i.e. api, cpu, cuda, tt)", default="tt")
     parser.add_argument("-t", "--training", action="store_true", help="Benchmark training")
     parser.add_argument(
         "-df",
@@ -450,6 +460,7 @@ if __name__ == "__main__":
 
     # Get all available models
     models = get_models()
+    api_models = get_api_models()
 
     # Process arguments
     if args.list:
@@ -485,6 +496,11 @@ if __name__ == "__main__":
             " has more than one configuration, you have to choose one:",
         )
         print(models[args.model]["configs"])
+        exit(1)
+
+    if args.device == "api" and args.model not in api_models:
+        print(args.model, "does not have an available API for benchmarking.\nAvailable APIs:")
+        print(api_models)
         exit(1)
 
     if args.load_tti and args.save_tti:

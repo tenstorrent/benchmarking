@@ -1,4 +1,4 @@
-# SPDX-FileCopyrightText: © 2023 Tenstorrent Inc.
+# SPDX-FileCopyrightText: © 2024 Tenstorrent AI ULC
 # SPDX-License-Identifier: Apache-2.0
 
 import logging
@@ -13,6 +13,7 @@ from enum import Enum, auto
 from importlib.metadata import metadata
 
 import psutil
+import requests
 import torch
 import transformers
 from diffusers import StableDiffusionPipeline
@@ -28,6 +29,7 @@ class DeviceType(Enum):
     TT = auto()
     CUDA = auto()
     CPU = auto()
+    API = auto()
 
 
 class OutputType(Enum):
@@ -44,6 +46,8 @@ def get_device_type_from_str(device_str: str) -> DeviceType:
         device_type = DeviceType.CUDA
     elif device_str == "cpu":
         device_type = DeviceType.CPU
+    elif device_str == "api":
+        device_type = DeviceType.API
     else:
         raise RuntimeError("Unknown device type: " + device_str)
     return device_type
@@ -93,6 +97,8 @@ class BenchmarkRun:
         self.pybuda_hash_date = None
         self.torch_version = None
         self.machine_name = None
+        self.api_url = None
+        self.api_key = None
         # model metadata
         self.model_name = None
         self.model_type = None
@@ -121,7 +127,7 @@ class BenchmarkRun:
         self.compilation_duration = 0
         self.benchmark_start_time = None
         self.benchmark_end_time = None
-        self.benchmark_duration = None
+        self.benchmark_duration = 0
         self.stop_monitoring = False
         # initialize with environment metadata
         self.get_pybuda_metadata()
@@ -248,6 +254,34 @@ class BenchmarkRun:
             cpu_mem_usage = (psutil.virtual_memory().used - baseline_cpu_mem_usage) / (1000**2)
             self.peak_cpu_mem = cpu_mem_usage if cpu_mem_usage > self.peak_cpu_mem else self.peak_cpu_mem
             time.sleep(1)
+
+    def get_api_metadata(self):
+        self.api_url = os.getenv("API_URL")
+        if self.api_url is None:
+            print("Error: API_URL environment variable is not set.")
+            exit(1)
+        self.api_key = os.getenv("API_KEY")
+        if self.api_key is None:
+            print("Error: API_KEY environment variable is not set.")
+            exit(1)
+
+    def run_api_benchmark(self, batch):
+        headers = {"Authorization": self.api_key}
+        output = ""
+        response_times = []
+        data = {"text": batch}
+        with requests.post(self.api_url, headers=headers, json=data, stream=True) as response:
+            # Ensure a successful response
+            if response.status_code == 200:
+                # Process the response content in chunks
+                for chunk in response.iter_content():
+                    if chunk:
+                        response_times.append(time.time())
+                        output += str(chunk.decode("utf-8"))
+            else:
+                print("Error: Failed to fetch response. Status Code:", response.status_code)
+        self.benchmark_duration += response_times[-1] - response_times[0]
+        return output
 
     def calc_output_stats(self, output, model, eval_score):
         self.eval_score = eval_score
