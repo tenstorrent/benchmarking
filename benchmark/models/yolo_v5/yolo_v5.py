@@ -41,6 +41,8 @@ def yolo_v5(training: bool, task: str, config: str, microbatch: int, device: str
             compiler_cfg.enable_tm_cpu_fallback = True
             compiler_cfg.enable_auto_fusing = False  # required to fix accuracy
             os.environ["PYBUDA_DECOMPOSE_SIGMOID"] = "1"
+        elif available_devices[0] == BackendDevice.Wormhole_B0:
+            os.environ["PYBUDA_SUPRESS_T_FACTOR_MM"] = "49"
 
     # Set model parameters based on chosen task and model configuration
     if config == "s":
