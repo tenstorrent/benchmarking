@@ -1,4 +1,4 @@
-# SPDX-FileCopyrightText: © 2023 Tenstorrent Inc.
+# SPDX-FileCopyrightText: © 2024 Tenstorrent AI ULC
 # SPDX-License-Identifier: Apache-2.0
 
 import os
@@ -13,7 +13,6 @@ from transformers import (
     WhisperForConditionalGeneration,
     WhisperTokenizer,
 )
-
 from transformers.modeling_attn_mask_utils import _prepare_4d_causal_attention_mask
 
 

@@ -1,4 +1,4 @@
-# SPDX-FileCopyrightText: © 2023 Tenstorrent Inc.
+# SPDX-FileCopyrightText: © 2024 Tenstorrent AI ULC
 # SPDX-License-Identifier: Apache-2.0
 
 import os
@@ -27,7 +27,7 @@ def mobilenetv3(training: bool, task: str, config: str, microbatch: int, device:
 
         if compiler_cfg.balancer_policy == "default":
             compiler_cfg.balancer_policy = "Ribbon"
-            os.environ["PYBUDA_RIBBON2"] = "1" 
+            os.environ["PYBUDA_RIBBON2"] = "1"
             os.environ["PYBUDA_FORCE_CONV_MULTI_OP_FRACTURE"] = "1"
             os.environ["PYBUDA_BALANCER_PREPASS_DISABLED"] = "1"
 
@@ -38,8 +38,8 @@ def mobilenetv3(training: bool, task: str, config: str, microbatch: int, device:
                 os.environ["PYBUDA_TEMP_ENABLE_NEW_SPARSE_ESTIMATES"] = "1"
 
         if pybuda.detect_available_devices()[0] != BackendDevice.Grayskull:
-            os.environ["PYBUDA_MAXIMIZE_SPARSE_UBLOCK"] = "1" 
-            os.environ["PYBUDA_SUPRESS_T_FACTOR_MM"] = "16" 
+            os.environ["PYBUDA_MAXIMIZE_SPARSE_UBLOCK"] = "1"
+            os.environ["PYBUDA_SUPRESS_T_FACTOR_MM"] = "16"
             os.environ["PYBUDA_FUSED_OP_MULTIPLIER"] = "7"
 
     # Set model parameters based on chosen task and model configuration

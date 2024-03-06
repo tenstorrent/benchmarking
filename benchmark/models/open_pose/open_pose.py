@@ -1,4 +1,4 @@
-# SPDX-FileCopyrightText: © 2023 Tenstorrent Inc.
+# SPDX-FileCopyrightText: © 2024 Tenstorrent AI ULC
 # SPDX-License-Identifier: Apache-2.0
 
 import os
@@ -26,7 +26,7 @@ def open_pose(training: bool, task: str, config: str, microbatch: int, device: s
 
         if compiler_cfg.balancer_policy == "default":
             compiler_cfg.balancer_policy = "Ribbon"
-            os.environ["PYBUDA_RIBBON2"] = "1" 
+            os.environ["PYBUDA_RIBBON2"] = "1"
 
         os.environ["PYBUDA_SUPRESS_T_FACTOR_MM"] = "13"
 

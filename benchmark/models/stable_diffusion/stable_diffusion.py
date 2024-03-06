@@ -1,8 +1,8 @@
-# SPDX-FileCopyrightText: © 2023 Tenstorrent Inc.
+# SPDX-FileCopyrightText: © 2024 Tenstorrent AI ULC
 # SPDX-License-Identifier: Apache-2.0
 
-import re
 import os
+import re
 
 from diffusers import StableDiffusionPipeline
 from torch.utils.data import DataLoader
@@ -17,8 +17,9 @@ def stable_diffusion(
     training: bool, task: str, config: str, microbatch: int, device: str, data_type: str, benchmark_run: BenchmarkRun
 ):
     import pybuda
+
     compiler_cfg = pybuda.config._get_global_compiler_config()
-        
+
     if compiler_cfg.balancer_policy == "default":
         compiler_cfg.balancer_policy = "Ribbon"
         os.environ["PYBUDA_RIBBON2"] = "1"

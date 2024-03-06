@@ -1,4 +1,4 @@
-# SPDX-FileCopyrightText: © 2023 Tenstorrent Inc.
+# SPDX-FileCopyrightText: © 2024 Tenstorrent AI ULC
 # SPDX-License-Identifier: Apache-2.0
 
 import os
@@ -39,11 +39,9 @@ def hrnet(training: bool, task: str, config: str, microbatch: int, device: str, 
             compiler_cfg.balancer_policy = "Ribbon"
             os.environ["PYBUDA_RIBBON2"] = "1"
             os.environ["PYBUDA_RIBBON2_OPTIMIZATION_ITERATIONS"] = "10"
-            os.environ["PYBUDA_SUPRESS_T_FACTOR_MM"] = "46" # removing causes hang #2139
-            os.environ["PYBUDA_LEGACY_KERNEL_BROADCAST"] = "1"  # #2130
+            os.environ["PYBUDA_SUPRESS_T_FACTOR_MM"] = "46"
+            os.environ["PYBUDA_LEGACY_KERNEL_BROADCAST"] = "1"
 
-            # These are about to be enabled by default.
-            #
             if data_type != "Bfp8_b":
                 os.environ["PYBUDA_TEMP_ENABLE_NEW_SPARSE_ESTIMATES"] = "1"
                 os.environ["PYBUDA_RIBBON2_DISABLE_NON_MATMUL_UTIL"] = "1"
@@ -54,7 +52,7 @@ def hrnet(training: bool, task: str, config: str, microbatch: int, device: str, 
         # Manually enable amp light for Ribbon
         if compiler_cfg.balancer_policy == "Ribbon":
             compiler_cfg.enable_amp_light()
-            
+
     # Set model parameters based on chosen task and model configuration
     img_res = 224
     target_microbatch = 32
