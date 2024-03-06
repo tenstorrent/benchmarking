@@ -6,7 +6,7 @@ Repository for AI model benchmarking on accelerator hardware.
 
 ### Installation
 
-First, create either a Python virtual environment with PyBUDA installed or execute from a Docker container with PyBUDA installed.
+First, create either a Python virtual environment with PyBuda installed or execute from a Docker container with PyBuda installed.
 
 Installation instructions can be found at [Install TT-BUDA](https://github.com/tenstorrent/tt-buda-demos/blob/main/first_5_steps/1_install_tt_buda.md).
 
