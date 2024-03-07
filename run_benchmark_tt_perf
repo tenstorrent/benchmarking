@@ -89,7 +89,7 @@ python benchmark.py -d tt -m yolo_v5 -c s --task object_detection -mb 64 --loop_
 python benchmark.py -d tt -m open_pose -c 2d --task pose_estimation -mb 64 -df Fp16 --loop_count 4 --save_output
 
 # U-Net - Segmentation - Brain LGG Dataset
-python benchmark.py -d tt -m unet -c 256 --task segmentation -mb 48 --loop_count 1 --save_output
+python benchmark.py -d tt -m unet -c 256 --task segmentation -mb 48 --loop_count 32 --save_output
 
 # Inception-v4 - Image Classification - ImageNet
 python benchmark.py -d tt -m inception_v4 -c 224 --task image_classification -mb 64 --loop_count 8 --save_output
