@@ -29,6 +29,9 @@ import benchmark.models.flant5.flant5
 import benchmark.models.flant5.flant5_past_cache_enc_dec
 import benchmark.models.hrnet.hrnet
 import benchmark.models.inception_v4.inception_v4
+import benchmark.models.llama2.llama2
+import benchmark.models.mamba.mamba
+import benchmark.models.mistral.mistral
 import benchmark.models.mobilenet_v1.mobilenet_v1
 import benchmark.models.mobilenet_v2.mobilenet_v2
 import benchmark.models.mobilenet_v2.mobilenet_v2_timm

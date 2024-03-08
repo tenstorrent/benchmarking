@@ -4,7 +4,7 @@
 import os
 import re
 
-from diffusers import StableDiffusionPipeline
+from diffusers import StableDiffusionPipeline, StableDiffusionXLPipeline
 from torch.utils.data import DataLoader
 from torchmetrics.multimodal.clip_score import CLIPScore
 from torchvision.transforms.functional import pil_to_tensor
@@ -12,7 +12,7 @@ from torchvision.transforms.functional import pil_to_tensor
 from ...common import BenchmarkRun, DummyPipelineDataset, benchmark_model, torch_df_from_str
 
 
-@benchmark_model(configs=["v1-4"])
+@benchmark_model(configs=["v1-4", "v1-5", "v2-1", "xl"])
 def stable_diffusion(
     training: bool, task: str, config: str, microbatch: int, device: str, data_type: str, benchmark_run: BenchmarkRun
 ):
@@ -37,6 +37,12 @@ def stable_diffusion(
     if task in ["na", "image_generation"]:
         if config == "v1-4":
             model_name = "CompVis/stable-diffusion-v1-4"
+        elif config == "v1-5":
+            model_name = "runwayml/stable-diffusion-v1-5"
+        elif config == "v2-1":
+            model_name = "stabilityai/stable-diffusion-2-1"
+        elif config == "xl":
+            model_name = "stabilityai/stable-diffusion-xl-base-1.0"
         else:
             raise RuntimeError("Unknown config")
     else:
@@ -93,9 +99,23 @@ def stable_diffusion(
 
         model = {"device": tt_module, "forward_wrapper": forward_wrapper}
     elif device == "cuda":
-        model = StableDiffusionPipeline.from_pretrained(model_name, torch_dtype=torch_df_from_str(data_type)).to("cuda")
+        if config == "xl":
+            model = StableDiffusionXLPipeline.from_pretrained(
+                model_name, torch_dtype=torch_df_from_str(data_type), use_safetensors=True
+            ).to("cuda")
+        else:
+            model = StableDiffusionPipeline.from_pretrained(
+                model_name, torch_dtype=torch_df_from_str(data_type), use_safetensors=True
+            ).to("cuda")
     elif device == "cpu":
-        model = StableDiffusionPipeline.from_pretrained(model_name, torch_dtype=torch_df_from_str(data_type))
+        if config == "xl":
+            model = StableDiffusionXLPipeline.from_pretrained(
+                model_name, torch_dtype=torch_df_from_str(data_type), use_safetensors=True
+            )
+        else:
+            model = StableDiffusionPipeline.from_pretrained(
+                model_name, torch_dtype=torch_df_from_str(data_type), use_safetensors=True
+            )
     else:
         raise RuntimeError("Unknown device")
 
@@ -147,7 +167,10 @@ def stable_diffusion(
         # Define evaluation function
         def eval_fn(outputs, labels):
             # Data post-processing
-            img_tensors = [pil_to_tensor(img) for b_out in outputs for img in b_out]
+            if config == "xl":
+                img_tensors = [pil_to_tensor(img[0][0]) for img in outputs]
+            else:
+                img_tensors = [pil_to_tensor(img) for b_out in outputs for img in b_out]
             flat_labels = [lab for b_labs in labels for lab in b_labs]
             # https://torchmetrics.readthedocs.io/en/stable/multimodal/clip_score.html#torchmetrics.multimodal.clip_score.CLIPScore
             # If a single tensor it should have shape ``(N, C, H, W)``. If a list of tensors, each tensor should have shape

@@ -51,8 +51,20 @@ python benchmark.py -d cuda -m inception_v4 -c 224 --task image_classification -
 # Whisper - ASR - LibriSpeech
 python benchmark.py -d cuda -m whisper -c small --task asr -df Fp32 -mb 1 --loop_count 1 --save_output
 
-# Falcon - Text Generation - HellaSwag
-python benchmark.py -d cuda -m falcon -c 7b-instruct --task hellaswag -df Fp16 -mb 32 --loop_count 1 --save_output
+# Falcon - Text Generation - AlpacaEval
+python benchmark.py -d cuda -m falcon -c 7b-instruct --task alpacaeval -df Fp16 -mb 32 --loop_count 1 --save_output
+
+# Mistral - Text Generation - AlpacaEval
+python benchmark.py -d cuda -m mistral -c 7b-instruct --task alpacaeval -df Fp16 -mb 32 --loop_count 1 --save_output
+
+# Llama2 - Text Generation - AlpacaEval
+python benchmark.py -d cuda -m llama2 -c 7b-chat --task alpacaeval -df Fp16 -mb 32 --loop_count 1 --save_output
+
+# Mamba - Text Generation - AlpacaEval
+python benchmark.py -d cuda -m mamba -c 2_8b --task alpacaeval -df Fp16 -mb 32 --loop_count 1 --save_output
 
 # Stable Diffusion - Image Generation
 python benchmark.py -d cuda -m stable_diffusion -c v1-4 --task image_generation -df Fp16 -mb 1 --loop_count 1 --save_output
+python benchmark.py -d cuda -m stable_diffusion -c v1-5 --task image_generation -df Fp16 -mb 1 --loop_count 1 --save_output
+python benchmark.py -d cuda -m stable_diffusion -c v2-1 --task image_generation -df Fp16 -mb 1 --loop_count 1 --save_output
+python benchmark.py -d cuda -m stable_diffusion -c xl --task image_generation -df Fp16 -mb 1 --loop_count 1 --save_output

@@ -7,7 +7,7 @@ import evaluate
 import torch
 from datasets import load_dataset
 from torch.utils.data import DataLoader
-from transformers import AutoTokenizer, FalconForCausalLM, pipeline
+from transformers import AutoModelForCausalLM, AutoTokenizer, pipeline
 
 from benchmark.common.benchmark_run import OutputType
 
@@ -18,16 +18,16 @@ torch.manual_seed(42)
 
 
 @benchmark_model(configs=["7b", "7b-instruct"])
-def falcon(
+def mistral(
     training: bool, task: str, config: str, microbatch: int, device: str, data_type: str, benchmark_run: BenchmarkRun
 ):
 
     # Set model parameters based on chosen task and model configuration
     if task in ["na", "hellaswag", "text_summarization", "alpacaeval"]:
         if config == "7b":
-            model_name = "tiiuae/falcon-7b"
+            model_name = "mistralai/Mistral-7B-v0.1"
         elif config == "7b-instruct":
-            model_name = "tiiuae/falcon-7b-instruct"
+            model_name = "mistralai/Mistral-7B-Instruct-v0.2"
         else:
             raise RuntimeError("Unknown config")
     else:
@@ -58,31 +58,7 @@ def falcon(
 
     # Create model device placement map
     if device == "tt":
-        from benchmark.models.falcon.utils.model import Falcon
-
-        # use all 32, implementation has this shape fixed
-        assert microbatch == 32, "microbatch must be 32 for TT, extra rows will be generated with padding"
-        model = Falcon(
-            user_rows=32,
-            num_tokens=max_tokens,
-            num_gen_tokens=max_new_tokens,
-            top_p_enable=top_p_enable,
-            top_p=0.9,
-            top_k=40,
-            temperature=1.0,
-            model_ckpt=model_name,
-            output_type=benchmark_run.output_type,
-            tti_save=benchmark_run.save_tti,
-            tti_load=benchmark_run.load_tti,
-        )
-        model.initialize()
-        tokenizer = model.tokenizer
-        benchmark_run.tokenizer = tokenizer
-        # using fixed 32 user rows means generaration occurs until all 32 rows are complete
-        # this gives a measure of the maximum capacity of the model implementation
-        benchmark_run.token_count_use_max_batch = True
-        # using prefill via decode on TT device
-        benchmark_run.count_prompt_tokens = True
+        raise RuntimeError("Not Supported.")
 
     else:
         tokenizer = AutoTokenizer.from_pretrained(model_name, padding_side="left")
@@ -90,7 +66,7 @@ def falcon(
         benchmark_run.tokenizer = tokenizer
         if task == "hellaswag":
             # in order to get logits or loss we use the CausalLM implementation
-            llm_model = FalconForCausalLM.from_pretrained(model_name, torch_dtype=torch_df_from_str(data_type)).to(
+            llm_model = AutoModelForCausalLM.from_pretrained(model_name, torch_dtype=torch_df_from_str(data_type)).to(
                 device
             )
 
@@ -304,7 +280,7 @@ def falcon(
                 output = tokenizer.decode(pred_only).lstrip()
 
                 test_case = (
-                    f"falcon-{config}-tt-{num_tokens}tk" if device == "tt" else f"falcon-{config}-gpu-{num_tokens}tk"
+                    f"mistral-{config}-tt-{num_tokens}tk" if device == "tt" else f"mistral-{config}-gpu-{num_tokens}tk"
                 )
 
                 outputs.append(
@@ -318,7 +294,7 @@ def falcon(
 
             # Writing to sample.json
             json_object = json.dumps(outputs, indent=4)
-            with open(f"benchmark/models/falcon/results/output_{test_case}.json", "w") as outfile:
+            with open(f"benchmark/models/mistral/results/output_{test_case}.json", "w") as outfile:
                 outfile.write(json_object)
 
             return 0.0
