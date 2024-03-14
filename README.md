@@ -96,12 +96,6 @@ To set up the three required datasets for running benchmarking tests within this
 
 To download the COCO dataset, follow these steps:
 
-1. *HuggingFace datasets*: will download into `${HF_HOME}/datasets/` once [HuggingFace Hub access](#setup-access-to-huggingface-hub) is setup. 
-
-2. *COCO Dataset*: You can automatically download the COCO dataset from here. No login is required, and the dataset will be cached in ~/.cache/coco.
-
-To download the COCO dataset, follow these steps:
-
 ```bash
 # use another location for MLDATA_DIR if desired, below is default
 # Create the `coco` directory inside the cache directory:
@@ -132,20 +126,17 @@ wget https://cocodataset.org/#download:~:text=2017%20Train/Val%20annotations%20%
 
 # Unzip the downloaded file:
 unzip annotations_trainval2017.zip
-# done  :)
 ```
 
 3. *LGG Segmentation Dataset*: must be manually downloaded from <https://www.kaggle.com/datasets/mateuszbuda/lgg-mri-segmentation>, this requires a Kaggle login. The commands below are to extract the downloaded archive into the correct location: `~/.cache/mldata/lgg_segmentation/kaggle_3m`.
 
 ```bash
-# use another location for MLDATA_DIR if desired, below is default
+# use another location for MLDATA_DIR if desired, below is default;
+# Download and move the downloaded archive and unzip within the llgg_segmentation folder.
 mkdir -p ~/.cache/mldata/lgg_segmentation
 cd ~/.cache/mldata/lgg_segmentation
-# download and move the archive here then unzip
-unzip archive.zip
 # the dataset appears to have two copies that are equivalent, remove the extra one
 rm -r lgg-mri-segmentation
-# done  :)
 ```
 
 ## Run Benchmarking
