@@ -35,7 +35,6 @@ def open_pose(training: bool, task: str, config: str, microbatch: int, device: s
         if data_type != "Bfp8_b":
             os.environ["PYBUDA_TEMP_ENABLE_NEW_SPARSE_ESTIMATES"] = "1"
         else:
-            # tenstorrent/pybuda#2228
             os.environ["PYBUDA_LEGACY_KERNEL_BROADCAST"] = "1"
 
         os.environ["PYBUDA_TEMP_ENABLE_NEW_FUSED_ESTIMATES"] = "1"
