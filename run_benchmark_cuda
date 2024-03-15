@@ -51,6 +51,9 @@ python benchmark.py -d cuda -m inception_v4 -c 224 --task image_classification -
 # Whisper - ASR - LibriSpeech
 python benchmark.py -d cuda -m whisper -c small --task asr -df Fp32 -mb 1 --loop_count 1 --save_output
 
+# BLOOM - Text Generation - AlpacaEval
+python benchmark.py -d cuda -m bloom -c 560m --task alpacaeval -df Fp16 -mb 32 --loop_count 1 --save_output
+
 # Falcon - Text Generation - AlpacaEval
 python benchmark.py -d cuda -m falcon -c 7b-instruct --task alpacaeval -df Fp16 -mb 32 --loop_count 1 --save_output
 
