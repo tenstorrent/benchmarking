@@ -8,9 +8,8 @@ nltk==3.8.1  # For ROUGE evaluation
 rouge-score==0.1.2  # For ROUGE evaluation
 soundfile==0.12.1  # For Whisper
 librosa==0.10.0  # For Whisper
-numba==0.53.1  # For Whisper
 jiwer==3.0.2  # For WER evaluation
 pycocotools==2.0.6  # for YOLOv5 evaluation
-diffusers==0.14.0  # For Stable Diffusion
 einops==0.6.1  # For Falcon-7B
 datasets==2.16.1
+diffusers==0.26.3
