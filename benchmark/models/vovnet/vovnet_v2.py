@@ -18,7 +18,6 @@ def vovnet_v2(training: bool, task: str, config: str, microbatch: int, device: s
 
     if device == "tt":
         import pybuda
-        from pybuda._C.backend_api import BackendDevice
 
         compiler_cfg = pybuda.config._get_global_compiler_config()
 
@@ -29,7 +28,6 @@ def vovnet_v2(training: bool, task: str, config: str, microbatch: int, device: s
         os.environ["PYBUDA_DISABLE_EXPLICIT_DRAM_IO"] = "1"
 
         # These are about to be enabled by default.
-        #
         if data_type != "Bfp8_b":
             os.environ["PYBUDA_TEMP_ENABLE_NEW_SPARSE_ESTIMATES"] = "1"
             os.environ["PYBUDA_TEMP_SCALE_SPARSE_ESTIMATE_ARGS"] = "1"
@@ -41,15 +39,11 @@ def vovnet_v2(training: bool, task: str, config: str, microbatch: int, device: s
             compiler_cfg.enable_amp_light()
 
         if data_type == "Bfp8_b":
-            # tenstorrent/pybuda#2228
             os.environ["PYBUDA_LEGACY_KERNEL_BROADCAST"] = "1"
 
     # Set model parameters based on chosen task and model configuration
     img_res = 224
     target_microbatch = 32
-
-    if config == "39":
-        compiler_cfg.enable_amp_light()
 
     if config == "19":
         model_name = "ese_vovnet19b_dw"
