@@ -23,6 +23,7 @@ from transformers.tokenization_utils_base import BatchEncoding
 
 # Models
 import benchmark.models.bert.bert
+import benchmark.models.bloom.bloom
 import benchmark.models.deit.deit
 import benchmark.models.falcon.falcon
 import benchmark.models.flant5.flant5
