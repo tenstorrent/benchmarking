@@ -122,7 +122,7 @@ mkdir annotations
 cd annotations
 
 # Download the COCO train/val annotations:
-wget https://cocodataset.org/#download:~:text=2017%20Train/Val%20annotations%20%5B241MB%5D
+wget http://images.cocodataset.org/annotations/annotations_trainval2017.zip
 
 # Unzip the downloaded file:
 unzip annotations_trainval2017.zip
