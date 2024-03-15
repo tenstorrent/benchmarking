@@ -117,10 +117,6 @@ unzip val2017.zip
 # Move back to the `coco` directory:
 cd ..
 
-# Create the `annotations` directory:
-mkdir annotations
-cd annotations
-
 # Download the COCO train/val annotations:
 wget http://images.cocodataset.org/annotations/annotations_trainval2017.zip
 
