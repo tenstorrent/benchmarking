@@ -109,7 +109,7 @@ mkdir images
 cd images
 
 # Download the COCO validation images:
-wget https://cocodataset.org/#download:~:text=2017%20Val%20images%20%5B5K/1GB%5D
+wget http://images.cocodataset.org/zips/val2017.zip
 
 # Unzip the downloaded file:
 unzip val2017.zip
