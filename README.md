@@ -102,7 +102,7 @@ To download the COCO dataset, follow these steps:
 mkdir -p ~/.cache/mldata/coco
 
 # Navigate to the `coco` directory:
-cd ~/.cache/coco
+cd ~/.cache/mldata/coco
 
 # Create the `images` directory:
 mkdir images
