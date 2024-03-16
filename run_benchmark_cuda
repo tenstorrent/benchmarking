@@ -64,7 +64,7 @@ python benchmark.py -d cuda -m mistral -c 7b-instruct --task alpacaeval -df Fp16
 python benchmark.py -d cuda -m llama2 -c 7b-chat --task alpacaeval -df Fp16 -mb 32 --loop_count 1 --save_output
 
 # Mamba - Text Generation - AlpacaEval
-python benchmark.py -d cuda -m mamba -c 2_8b --task alpacaeval -df Fp16 -mb 32 --loop_count 1 --save_output
+python benchmark.py -d cuda -m mamba -c 2b8 --task alpacaeval -df Fp16 -mb 32 --loop_count 1 --save_output
 
 # Stable Diffusion - Image Generation
 python benchmark.py -d cuda -m stable_diffusion -c v1-4 --task image_generation -df Fp16 -mb 1 --loop_count 1 --save_output
