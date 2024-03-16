@@ -17,14 +17,14 @@ from ...common import BenchmarkRun, DummyPipelineDataset, PipelineDataset, bench
 torch.manual_seed(42)
 
 
-@benchmark_model(configs=["2_8b"])
+@benchmark_model(configs=["2b8"])
 def mamba(
     training: bool, task: str, config: str, microbatch: int, device: str, data_type: str, benchmark_run: BenchmarkRun
 ):
 
     # Set model parameters based on chosen task and model configuration
     if task in ["na", "hellaswag", "text_summarization", "alpacaeval"]:
-        if config == "2_8b":
+        if config == "2b8":
             model_name = "state-spaces/mamba-2.8b-hf"
         else:
             raise RuntimeError("Unknown config")
