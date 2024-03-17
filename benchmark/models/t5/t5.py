@@ -53,9 +53,8 @@ def t5(training: bool, task: str, config: str, microbatch: int, device: str, dat
         raise RuntimeError("Unknown task")
 
     if task == "na":
-        input_length = 32
-        min_new_tokens = 256
-        max_new_tokens = 256
+        input_length = 128
+        min_new_tokens = max_new_tokens = 5
     elif task == "text_classification":
         input_length = 32
         min_new_tokens = 0
@@ -81,6 +80,7 @@ def t5(training: bool, task: str, config: str, microbatch: int, device: str, dat
     tokenizer = T5Tokenizer.from_pretrained(
         model_name, model_max_length=input_length, padding="max_length", truncation=True
     )
+    tokenizer.pad_token_id = tokenizer.eos_token_id
 
     # Configure model mode for training or evaluation
     if training:
@@ -94,12 +94,11 @@ def t5(training: bool, task: str, config: str, microbatch: int, device: str, dat
             "text2text-generation", model=model, tokenizer=tokenizer, pybuda_max_length=input_length
         )
     else:
-        device = 0 if device == "cuda" else -1
         model = pipeline(
             "text2text-generation",
             model=model,
             tokenizer=tokenizer,
-            device=device,
+            device=0 if device == "cuda" else -1,
             torch_dtype=torch_df_from_str(data_type),
         )
 
@@ -120,10 +119,16 @@ def t5(training: bool, task: str, config: str, microbatch: int, device: str, dat
         # set task specific model parameters
         model.model.config.early_stopping = False
 
+        fixed_size = 128
+        input_ids = model.tokenizer.encode("translate the following sentence from English to German: The house is wonderful.", add_special_tokens=False)
+        input_ids.extend([model.tokenizer.pad_token_id] * (fixed_size - len(input_ids)))
+        input_ids = input_ids[:fixed_size]
+        input_text = model.tokenizer.decode(input_ids)
+
         # Create random inputs and targets
         dataset = DummyPipelineDataset(
             microbatch=microbatch,
-            sample_text="translate English to German: The house is wonderful.",
+            sample_text=input_text,
             answer="Das Haus ist wunderbar.",
         )
 
