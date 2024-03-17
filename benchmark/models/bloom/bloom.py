@@ -50,6 +50,7 @@ def bloom(
     if task == "na":
         benchmark_run.output_type = OutputType.TEXT
         top_p_enable = 0
+        max_new_tokens = min_new_tokens = 10
     elif task == "hellaswag":
         max_new_tokens = 1
         min_new_tokens = 1
@@ -104,8 +105,10 @@ def bloom(
             model.model.config.length_penalty = 1.0
             # disable ngram repeat restriction to not disadvantage other implementations
             model.model.config.no_repeat_ngram_size = 0
-            model.model.config.max_length = max_new_tokens
-            model.model.config.min_length = min_new_tokens
+            # model.model.config.max_length = max_new_tokens
+            # model.model.config.min_length = min_new_tokens
+            model.model.config.max_new_tokens = max_new_tokens
+            model.model.config.min_new_tokens = min_new_tokens
             model.model.config.num_beams = 1
             model.model.config.num_return_sequences = 1
             # set key for accessing output text
@@ -114,20 +117,21 @@ def bloom(
     # Task specific configuration
     if task == "na":
 
+        fixed_size = 384
+        input_ids = model.tokenizer.encode("translate the following sentence from English to German: The house is wonderful.", add_special_tokens=False)
+        input_ids.extend([model.tokenizer.pad_token_id] * (fixed_size - len(input_ids)))
+        input_ids = input_ids[:fixed_size]
+        input_text = model.tokenizer.decode(input_ids)
+
         # Create random inputs and targets
         dataset = DummyPipelineDataset(
             microbatch=microbatch,
-            sample_text="translate the following sentence from English to German: The house is wonderful.",
+            sample_text=input_text,
             answer="Das Haus ist wunderbar.",
         )
 
         # Define evaluation function
         def eval_fn(outputs, labels):
-            # this tests that all 32 batch outputs are the same when top_p_enable=0
-            for i in range(microbatch):
-                print(i)
-                print(outputs[0][i])
-
             first_out = outputs[0][0]
             eval_score = float(all([out == first_out for out in outputs[0]]))
             return eval_score
