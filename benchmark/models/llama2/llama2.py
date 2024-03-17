@@ -17,17 +17,21 @@ from ...common import BenchmarkRun, DummyPipelineDataset, PipelineDataset, bench
 torch.manual_seed(42)
 
 
-@benchmark_model(configs=["7b", "7b-chat"])
+@benchmark_model(configs=["7b", "7b-chat", "70b-chat"])
 def llama2(
     training: bool, task: str, config: str, microbatch: int, device: str, data_type: str, benchmark_run: BenchmarkRun
 ):
 
+    load_in_4bit = False
     # Set model parameters based on chosen task and model configuration
     if task in ["na", "hellaswag", "text_summarization", "alpacaeval"]:
         if config == "7b":
             model_name = "meta-llama/Llama-2-7b"
         elif config == "7b-chat":
             model_name = "meta-llama/Llama-2-7b-chat-hf"
+        elif config == "70b-chat":
+            model_name = "meta-llama/Llama-2-70b-chat-hf"
+            load_in_4bit = True
         else:
             raise RuntimeError("Unknown config")
     else:
@@ -37,13 +41,14 @@ def llama2(
     # max_tokens: the maximum number of tokens (prompt + generation) per user row
     # max_new_tokens: the maximum number of tokens to generate per user row
     # defaults
-    max_tokens = 1024
+    max_tokens = 2048
     max_new_tokens = 512
     min_new_tokens = 0
     top_p_enable = 1
     if task == "na":
         benchmark_run.output_type = OutputType.TEXT
         top_p_enable = 0
+        max_new_tokens = min_new_tokens = 1
     elif task == "hellaswag":
         max_new_tokens = 1
         min_new_tokens = 1
@@ -84,11 +89,11 @@ def llama2(
 
             model = model_wrapper
         else:
+            llm_model = AutoModelForCausalLM.from_pretrained(model_name, torch_dtype=torch_df_from_str(data_type), load_in_4bit=load_in_4bit, device_map="auto")
             model = pipeline(
                 "text-generation",
-                model=model_name,
+                model=llm_model,
                 tokenizer=tokenizer,
-                device=0 if device == "cuda" else -1,
                 torch_dtype=torch_df_from_str(data_type),
                 return_dict=True,
                 output_hidden_states=True,
@@ -98,8 +103,10 @@ def llama2(
             model.model.config.length_penalty = 1.0
             # disable ngram repeat restriction to not disadvantage other implementations
             model.model.config.no_repeat_ngram_size = 0
-            model.model.config.max_length = max_new_tokens
-            model.model.config.min_length = min_new_tokens
+            # model.model.config.max_length = max_new_tokens
+            # model.model.config.min_length = min_new_tokens
+            model.model.config.max_new_tokens = max_new_tokens
+            model.model.config.min_new_tokens = min_new_tokens
             model.model.config.num_beams = 1
             model.model.config.num_return_sequences = 1
             # set key for accessing output text
@@ -108,20 +115,21 @@ def llama2(
     # Task specific configuration
     if task == "na":
 
+        fixed_size = 128
+        input_ids = model.tokenizer.encode("translate the following sentence from English to German: The house is wonderful.", add_special_tokens=False)
+        input_ids.extend([model.tokenizer.pad_token_id] * (fixed_size - len(input_ids)))
+        input_ids = input_ids[:fixed_size]
+        input_text = model.tokenizer.decode(input_ids)
+
         # Create random inputs and targets
         dataset = DummyPipelineDataset(
             microbatch=microbatch,
-            sample_text="translate the following sentence from English to German: The house is wonderful.",
+            sample_text=input_text,
             answer="Das Haus ist wunderbar.",
         )
 
         # Define evaluation function
         def eval_fn(outputs, labels):
-            # this tests that all 32 batch outputs are the same when top_p_enable=0
-            for i in range(microbatch):
-                print(i)
-                print(outputs[0][i])
-
             first_out = outputs[0][0]
             eval_score = float(all([out == first_out for out in outputs[0]]))
             return eval_score
