@@ -131,6 +131,8 @@ unzip annotations_trainval2017.zip
 # Download and move the downloaded archive and unzip within the llgg_segmentation folder.
 mkdir -p ~/.cache/mldata/lgg_segmentation
 cd ~/.cache/mldata/lgg_segmentation
+# download and move the archive here then unzip
+unzip archive.zip
 # the dataset appears to have two copies that are equivalent, remove the extra one
 rm -r lgg-mri-segmentation
 ```
