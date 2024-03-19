@@ -1,4 +1,4 @@
-# SPDX-FileCopyrightText: © 2023 Tenstorrent Inc.
+# SPDX-FileCopyrightText: © 2024 Tenstorrent AI ULC
 # SPDX-License-Identifier: Apache-2.0
 
 # Stable Diffusion Demo Script
@@ -115,19 +115,7 @@ def initialize_compiler_overrides():
     os.environ["PYBUDA_FORCE_CONV_MULTI_OP_FRACTURE"] = "1"
 
     compiler_cfg = pybuda.config._get_global_compiler_config()
-    compiler_cfg.enable_tvm_constant_prop = True
-    compiler_cfg.enable_t_streaming = True
-    compiler_cfg.enable_enumerate_u_kt = False
-    compiler_cfg.graph_solver_self_cut_type = "FastCut"
-    compiler_cfg.retain_tvm_python_files = True
-    compiler_cfg.enable_auto_fusing = False
     compiler_cfg.balancer_policy = "Ribbon"
-
-    compiler_cfg.place_on_new_epoch("matmul_134")
-    compiler_cfg.place_on_new_epoch("matmul_268")
-    compiler_cfg.place_on_new_epoch("matmul_2159")
-    compiler_cfg.place_on_new_epoch("matmul_2295")
-    compiler_cfg.place_on_new_epoch("matmul_2431")
 
 
 def denoising_loop(

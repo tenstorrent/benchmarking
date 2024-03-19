@@ -1,5 +1,7 @@
-# SPDX-FileCopyrightText: © 2023 Tenstorrent Inc.
+# SPDX-FileCopyrightText: © 2024 Tenstorrent AI ULC
 # SPDX-License-Identifier: Apache-2.0
+
+import os
 
 import torch
 from datasets import load_dataset
@@ -16,11 +18,17 @@ def whisper_enc_dec(training: bool, task: str, config: str, microbatch: int, dev
     assert device == "tt", "This model is only supported on TT hardware"
 
     import pybuda
+    from pybuda._C.backend_api import BackendDevice
 
     compiler_cfg = pybuda.config._get_global_compiler_config()
 
     if compiler_cfg.balancer_policy == "default":
         compiler_cfg.balancer_policy = "NLP"
+
+    if pybuda.detect_available_devices()[0] == BackendDevice.Grayskull:
+        compiler_cfg.enable_auto_fusing = False
+        compiler_cfg.balancer_policy = "Ribbon"
+        os.environ["PYBUDA_RIBBON2"] = "1"
 
     # Set model parameters based on chosen task and model configuration
     if task == "na" or task == "asr":

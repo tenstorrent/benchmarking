@@ -1,4 +1,4 @@
-# SPDX-FileCopyrightText: © 2023 Tenstorrent Inc.
+# SPDX-FileCopyrightText: © 2024 Tenstorrent AI ULC
 # SPDX-License-Identifier: Apache-2.0
 
 import os
@@ -16,12 +16,27 @@ def bert(training: bool, task: str, config: str, microbatch: int, device: str, d
 
     if device == "tt":
         import pybuda
+        from pybuda._C.backend_api import BackendDevice
 
         compiler_cfg = pybuda.config._get_global_compiler_config()
         compiler_cfg.enable_auto_transposing_placement = True
-        compiler_cfg.balancer_policy = "Ribbon"
+        if compiler_cfg.balancer_policy == "default":
+            compiler_cfg.balancer_policy = "Ribbon"
+            os.environ["PYBUDA_RIBBON2"] = "1"
+            os.environ["PYBUDA_TEMP_ENABLE_NEW_FUSED_ESTIMATES"] = "1"
+            os.environ["PYBUDA_TEMP_ENABLE_NEW_SPARSE_ESTIMATES"] = "1"
+            os.environ["PYBUDA_TEMP_SCALE_SPARSE_ESTIMATE_ARGS"] = "1"
+            os.environ["PYBUDA_RIBBON2_CALCULATE_TARGET_CYCLES"] = "1"
+            os.environ["PYBUDA_EXP_APPROX"] = "1"
+            if data_type == "Bfp8_b":
+                pybuda.config.configure_mixed_precision(op_type="add", output_df=pybuda.DataFormat.Float16_b)
+                pybuda.config.configure_mixed_precision(op_type="subtract", output_df=pybuda.DataFormat.Float16_b)
+                pybuda.config.configure_mixed_precision(op_type="reciprocal", output_df=pybuda.DataFormat.Float16_b)
 
-        os.environ["PYBUDA_RIBBON2"] = "1"
+        available_devices = pybuda.detect_available_devices()
+        if available_devices[0] == BackendDevice.Grayskull:
+            os.environ["TT_BACKEND_OVERLAY_MAX_EXTRA_BLOB_SIZE"] = f"{18*1024}"
+            pybuda.config.override_op_size("gelu_103", (3, 1))
 
     # Set model parameters based on chosen task and model configuration
     if task == "na":

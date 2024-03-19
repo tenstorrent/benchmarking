@@ -1,4 +1,4 @@
-# SPDX-FileCopyrightText: © 2023 Tenstorrent Inc.
+# SPDX-FileCopyrightText: © 2024 Tenstorrent AI ULC
 # SPDX-License-Identifier: Apache-2.0
 
 import os
@@ -20,25 +20,29 @@ def yolo_v5(training: bool, task: str, config: str, microbatch: int, device: str
         from pybuda._C.backend_api import BackendDevice
 
         compiler_cfg = pybuda.config._get_global_compiler_config()
-        compiler_cfg.enable_t_streaming = True
 
         if compiler_cfg.balancer_policy == "default":
             compiler_cfg.balancer_policy = "Ribbon"
             os.environ["PYBUDA_RIBBON2"] = "1"
 
+            # These are about to be enabled by default.
+            #
+            os.environ["PYBUDA_TEMP_ENABLE_NEW_FUSED_ESTIMATES"] = "1"
+            if data_type != "Bfp8_b":
+                os.environ["PYBUDA_TEMP_ENABLE_NEW_SPARSE_ESTIMATES"] = "1"
+
+            if data_type == "Bfp8_b":
+                os.environ["PYBUDA_FORK_JOIN_SKIP_EXPANDING_BUFFERS"] = "1"
+                os.environ["PYBUDA_TEMP_SCALE_SPARSE_ESTIMATE_ARGS"] = "1"
+                os.environ["PYBUDA_RIBBON2_CALCULATE_TARGET_CYCLES"] = "1"
+
         available_devices = pybuda.detect_available_devices()
         if available_devices[0] == BackendDevice.Grayskull:
             compiler_cfg.enable_tm_cpu_fallback = True
-        elif available_devices[0] == BackendDevice.Wormhole_B0:
-            os.environ["PYBUDA_SUPRESS_T_FACTOR_MM"] = "16"
-
-        if pybuda.detect_available_devices()[0] == BackendDevice.Grayskull:
-            # Set PyBUDA configuration parameters
-            compiler_cfg.balancer_policy = "CNN"
-            compiler_cfg.enable_tm_cpu_fallback = True
             compiler_cfg.enable_auto_fusing = False  # required to fix accuracy
-            # Set PyBUDA environment variables
             os.environ["PYBUDA_DECOMPOSE_SIGMOID"] = "1"
+        elif available_devices[0] == BackendDevice.Wormhole_B0:
+            os.environ["PYBUDA_SUPRESS_T_FACTOR_MM"] = "49"
 
     # Set model parameters based on chosen task and model configuration
     if config == "s":

@@ -6,7 +6,7 @@ Repository for AI model benchmarking on accelerator hardware.
 
 ### Installation
 
-First, create either a Python virtual environment with PyBUDA installed or execute from a Docker container with PyBUDA installed.
+First, create either a Python virtual environment with PyBuda installed or execute from a Docker container with PyBuda installed.
 
 Installation instructions can be found at [Install TT-BUDA](https://github.com/tenstorrent/tt-buda-demos/blob/main/first_5_steps/1_install_tt_buda.md).
 
@@ -30,24 +30,105 @@ pip install -r requirements-cuda.txt
 
 ### Environment Setup
 
+
+
+
 #### Setup Access to HuggingFace Hub
 
-To use some datasets for evaluation benchmarking, such as ImageNet-1k, you will need to be connected to HuggingFace Hub.
+To access the benchmarking datasets, follow these steps to set up your access to the HuggingFace Hub:
 
-1. Create a HuggingFace account from <https://huggingface.co/>
-2. Create a User Access Token by following steps in <https://huggingface.co/docs/hub/security-tokens>
-3. Download the `huggingface_hub` library and login through `huggingface-cli` with your User Access Token by following the steps in <https://huggingface.co/docs/huggingface_hub/quick-start>
+1. **Create a HuggingFace Account**:
+   - Visit [Hugging Face](https://huggingface.co/) and create an account if you haven't already.
 
-#### Benchmarking Datasets Setup
+2. **Generate User Access Token**:
+   - Follow the steps outlined in the [HuggingFace Docs - Security Tokens](https://huggingface.co/docs/hub/security-tokens) to generate a User Access Token.
 
-HuggingFace datasets will download into `${HF_HOME}/datasets/` once HuggingFace Hub access is setup.
+3. **Install `huggingface_hub` Library**:
+   - Install the `huggingface_hub` library by running:
+     ```bash
+     pip install huggingface_hub
+     ```
 
-COCO: is downloaded automatically from <https://cocodataset.org>, no login is needed. The cache location is `~/.cache/coco`
+4. **Login to HuggingFace CLI**:
+   - Login to the HuggingFace CLI using your User Access Token:
+     ```bash
+     huggingface-cli login
+     ```
+   - Enter your User Access Token when prompted.
 
-LGG Segmentation Dataset: must be manually downloaded from <https://www.kaggle.com/datasets/mateuszbuda/lgg-mri-segmentation>, this requires a Kaggle login. The commands below are to extract the downloaded archive into the correct location: `~/.cache/mldata/lgg_segmentation/kaggle_3m`.
+5. **Validate Setup**:
+   - Run the following command to verify your login status:
+     ```bash
+     huggingface-cli whoami
+     ```
+   - If your username is displayed, it means you are successfully logged in.
+
+6. **Dataset Access**:
+   - Visit [HuggingFace Datasets - ImageNet-1k](https://huggingface.co/datasets/imagenet-1k) and follow the instructions to grant access to the ImageNet-1k dataset.
+
+## Validation Steps
+
+After completing the setup process, ensure that everything is working correctly:
+
+1. **Verify Hugging Face Hub Login**:
+   - Run the following command to verify that you are logged in to the Hugging Face Hub:
+     ```bash
+     huggingface-cli whoami
+     ```
+   - If your username is displayed, it means you are successfully logged in.
+
+2. **Check Dataset Access**:
+   - Visit the [HuggingFace Datasets - ImageNet-1k](https://huggingface.co/datasets/imagenet-1k) page.
+   - Make sure you can view and access the dataset details without any permission errors.
+
+3. **Accept Dataset Access (If Required)**:
+   - If you encounter any permission errors while accessing the ImageNet-1k dataset, ensure that you follow the instructions provided on the dataset page to grant access.
+
+
+### Benchmarking Datasets Setup
+
+
+To set up the three required datasets for running benchmarking tests within this repository, follow these steps for each dataset:
+
+1. **HuggingFace datasets**: will download into `${HF_HOME}/datasets/` once [HuggingFace Hub access](#setup-access-to-huggingface-hub) is set up.
+
+2. **COCO Dataset**: You can automatically download the COCO dataset from [here](https://cocodataset.org/#download:~:text=2017%20Val%20images%20%5B5K/1GB%5D). No login is required, and the dataset will be cached in `~/.cache/coco`.
+
+To download the COCO dataset, follow these steps:
 
 ```bash
 # use another location for MLDATA_DIR if desired, below is default
+# Create the `coco` directory inside the cache directory:
+mkdir -p ~/.cache/mldata/coco
+
+# Navigate to the `coco` directory:
+cd ~/.cache/mldata/coco
+
+# Create the `images` directory:
+mkdir images
+cd images
+
+# Download the COCO validation images:
+wget http://images.cocodataset.org/zips/val2017.zip
+
+# Unzip the downloaded file:
+unzip val2017.zip
+
+# Move back to the `coco` directory:
+cd ..
+
+# Download the COCO train/val annotations:
+wget http://images.cocodataset.org/annotations/annotations_trainval2017.zip
+
+# Unzip the downloaded file:
+unzip annotations_trainval2017.zip
+```
+
+3. *LGG Segmentation Dataset*: must be manually downloaded from <https://www.kaggle.com/datasets/mateuszbuda/lgg-mri-segmentation>, this requires a Kaggle login. The commands below are to extract the downloaded archive into the correct location: `~/.cache/mldata/lgg_segmentation/kaggle_3m`.
+
+```bash
+# use another location for MLDATA_DIR if desired, below is default;
+# Download and move the downloaded archive and unzip within the llgg_segmentation folder.
 mkdir -p ~/.cache/mldata/lgg_segmentation
 cd ~/.cache/mldata/lgg_segmentation
 # download and move the archive here then unzip
