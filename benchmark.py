@@ -83,6 +83,7 @@ def run(
 
         # Set default configuration type
         pybuda.config.set_configuration_options(default_df_override=df_from_str(args.dataformat))
+        pybuda.config.set_configuration_options(accumulate_df=df_from_str(args.acc_dataformat))
 
         if args.dump_intermediate:
             ops = args.dump_intermediate.split(",")
@@ -345,6 +346,13 @@ if __name__ == "__main__":
         choices=["Fp32", "Fp16", "Fp16_b", "Bfp8", "Bfp8_b", "Bfp4", "Bfp4_b"],
         default="Fp16_b",
         help="Set data format",
+    )
+    parser.add_argument(
+        "-adf",
+        "--acc_dataformat",
+        choices=["Fp32", "Fp16", "Fp16_b", "Bfp8", "Bfp8_b", "Bfp4", "Bfp4_b"],
+        default="Fp32",
+        help="Set accumulation data format",
     )
     parser.add_argument(
         "-mf",
