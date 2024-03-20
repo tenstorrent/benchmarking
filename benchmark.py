@@ -534,6 +534,9 @@ if __name__ == "__main__":
         fname = f"perf_{args.model}_{args.config}_{result.get('input_size', 'na')}_{args.device}_mb{args.microbatch}_{benchmark_run.short_run_id}.json"
         fname = fname.replace("/", "_")  # escape fnames
         out_file = pathlib.Path("results", fname)
+        
+        # Creates result dir if models are run out of the benchmarking repo
+        os.makedirs(os.path.dirname(out_file), exist_ok=True)
 
         all_results = []
         if os.path.exists(out_file):
