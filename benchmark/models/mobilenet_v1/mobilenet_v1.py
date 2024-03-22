@@ -9,6 +9,7 @@ from torch.utils.data import DataLoader
 from transformers import AutoImageProcessor, AutoModelForImageClassification
 
 from ...common import DummyCVDataset, ImageNetDataset, benchmark_model, torch_df_from_str
+from pybuda.config import _get_global_compiler_config
 
 
 @benchmark_model(configs=["192", "224"])
@@ -16,28 +17,35 @@ def mobilenetv1(training: bool, task: str, config: str, microbatch: int, device:
 
     if device == "tt":
         import pybuda
-
-        compiler_cfg = pybuda.config._get_global_compiler_config()
+    
+        compiler_cfg = _get_global_compiler_config()
         compiler_cfg.enable_auto_transposing_placement = True
 
         if compiler_cfg.balancer_policy == "default":
             compiler_cfg.balancer_policy = "Ribbon"
             os.environ["PYBUDA_RIBBON2"] = "1"
 
-        os.environ["PYBUDA_SUPRESS_T_FACTOR_MM"] = "8"
+        os.environ["PYBUDA_ENABLE_HOST_INPUT_NOP_BUFFERING"] = "1"
 
         # These are about to be enabled by default.
         #
         os.environ["PYBUDA_TEMP_ENABLE_NEW_FUSED_ESTIMATES"] = "1"
-        if data_type != "Bfp8_b":
-            os.environ["PYBUDA_TEMP_ENABLE_NEW_SPARSE_ESTIMATES"] = "1"
+        os.environ["PYBUDA_TEMP_SCALE_SPARSE_ESTIMATE_ARGS"] = "1"
+        os.environ["PYBUDA_RIBBON2_CALCULATE_TARGET_CYCLES"] = "1"
+        os.environ["PYBUDA_TEMP_ENABLE_NEW_SPARSE_ESTIMATES"] = "1"
+
+        if data_type == "Fp16_b":
+            os.environ["PYBUDA_SUPRESS_T_FACTOR_MM"] = "40"
 
         if data_type == "Bfp8_b":
-            # tenstorrent/pybuda#2228
-            os.environ["PYBUDA_LEGACY_KERNEL_BROADCAST"] = "1"
             pybuda.config.configure_mixed_precision(name_regex="input.*add.*", output_df=pybuda.DataFormat.Float16_b)
-            pybuda.config.configure_mixed_precision(op_type="add", output_df=pybuda.DataFormat.Float16_b)
+            pybuda.config.configure_mixed_precision(op_type="add",output_df=pybuda.DataFormat.Float16_b)
+            pybuda.config.configure_mixed_precision(op_type="multiply", math_fidelity=pybuda.MathFidelity.HiFi2)
             pybuda.config.configure_mixed_precision(op_type="depthwise", output_df=pybuda.DataFormat.Float16_b)
+            os.environ["PYBUDA_TEMP_SCALE_SPARSE_ESTIMATE_ARGS"] = "1"
+
+        if data_type == "Fp16_b":
+            os.environ["PYBUDA_TEMP_DISABLE_MODEL_KB_PROLOGUE_BW"] = "1"
 
     # Set model parameters based on chosen task and model configuration
     if config == "192":
@@ -108,6 +116,23 @@ def mobilenetv1(training: bool, task: str, config: str, microbatch: int, device:
 
         # Define evaluation function
         def eval_fn(outputs, labels):
+
+            print("\n")
+            print(" ------------------ EVAL FN ------------------ ")
+            print(f"type outputs: {type(outputs)}")
+            print(f"length outputs: {len(outputs)}")
+            print(f"type outputs[0]: {type(outputs[0])}")
+            print(f"length outputs[0]: {len(outputs[0])}")
+            print(f"type outputs[0][0]: {type(outputs[0][0])}")
+            print(f"shape outputs[0][0]: {outputs[0][0].shape}")
+            print("\n")
+
+            preserved_outputs = torch.stack([torch.stack([tensor.value() for tensor in item], dim=0) for item in outputs], dim=0)
+            print("\n")
+            print(f"shape preserved outputs: {preserved_outputs.shape}")
+            torch.save(preserved_outputs, "/proj_sw/user_dev/vcanic/projects/auxiliary/hifi2_to_lofi/outputs_lofi.pt")
+            print("\n")
+
             import evaluate
 
             accuracy_metric = evaluate.load("accuracy")
