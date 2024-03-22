@@ -83,6 +83,8 @@ def run(
 
         # Set default configuration type
         pybuda.config.set_configuration_options(default_df_override=df_from_str(args.dataformat))
+        if args.acc_dataformat:
+            pybuda.config.set_configuration_options(accumulate_df=df_from_str(args.acc_dataformat))
 
         if args.dump_intermediate:
             ops = args.dump_intermediate.split(",")
@@ -347,6 +349,12 @@ if __name__ == "__main__":
         help="Set data format",
     )
     parser.add_argument(
+        "-adf",
+        "--acc_dataformat",
+        choices=["Fp32", "Fp16", "Fp16_b", "Bfp8", "Bfp8_b", "Bfp4", "Bfp4_b"],
+        help="Set accumulation data format",
+    )
+    parser.add_argument(
         "-mf",
         "--math_fidelity",
         choices=["LoFi", "HiFi2", "HiFi3", "HiFi4"],
@@ -534,6 +542,9 @@ if __name__ == "__main__":
         fname = f"perf_{args.model}_{args.config}_{result.get('input_size', 'na')}_{args.device}_mb{args.microbatch}_{benchmark_run.short_run_id}.json"
         fname = fname.replace("/", "_")  # escape fnames
         out_file = pathlib.Path("results", fname)
+        
+        # Creates result dir if models are run out of the benchmarking repo
+        os.makedirs(os.path.dirname(out_file), exist_ok=True)
 
         all_results = []
         if os.path.exists(out_file):
