@@ -39,9 +39,9 @@ def mobilenetv1(training: bool, task: str, config: str, microbatch: int, device:
 
         if data_type == "Bfp8_b":
             pybuda.config.configure_mixed_precision(name_regex="input.*add.*", output_df=pybuda.DataFormat.Float16_b)
-            pybuda.config.configure_mixed_precision(op_type="add",output_df=pybuda.DataFormat.Float16_b)
+            pybuda.config.configure_mixed_precision(op_type="add", output_df=pybuda.DataFormat.Float16_b)
             pybuda.config.configure_mixed_precision(op_type="multiply", math_fidelity=pybuda.MathFidelity.HiFi2)
-            pybuda.config.configure_mixed_precision(op_type="depthwise", output_df=pybuda.DataFormat.Float16_b)
+            pybuda.config.configure_mixed_precision(op_type="depthwise", output_df=pybuda.DataFormat.Float16_b, math_fidelity=pybuda.MathFidelity.HiFi2)
             os.environ["PYBUDA_TEMP_SCALE_SPARSE_ESTIMATE_ARGS"] = "1"
 
         if data_type == "Fp16_b":
@@ -116,22 +116,6 @@ def mobilenetv1(training: bool, task: str, config: str, microbatch: int, device:
 
         # Define evaluation function
         def eval_fn(outputs, labels):
-
-            print("\n")
-            print(" ------------------ EVAL FN ------------------ ")
-            print(f"type outputs: {type(outputs)}")
-            print(f"length outputs: {len(outputs)}")
-            print(f"type outputs[0]: {type(outputs[0])}")
-            print(f"length outputs[0]: {len(outputs[0])}")
-            print(f"type outputs[0][0]: {type(outputs[0][0])}")
-            print(f"shape outputs[0][0]: {outputs[0][0].shape}")
-            print("\n")
-
-            preserved_outputs = torch.stack([torch.stack([tensor.value() for tensor in item], dim=0) for item in outputs], dim=0)
-            print("\n")
-            print(f"shape preserved outputs: {preserved_outputs.shape}")
-            torch.save(preserved_outputs, "/proj_sw/user_dev/vcanic/projects/auxiliary/hifi2_to_lofi/outputs_lofi.pt")
-            print("\n")
 
             import evaluate
 

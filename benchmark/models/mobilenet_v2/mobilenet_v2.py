@@ -39,14 +39,15 @@ def mobilenetv2(training: bool, task: str, config: str, microbatch: int, device:
 
         if data_type == "Bfp8_b":
             pybuda.config.configure_mixed_precision(name_regex="input.*add.*", output_df=pybuda.DataFormat.Float16_b)
-            # pybuda.config.configure_mixed_precision(op_type="add", output_df=pybuda.DataFormat.Float16_b)
+            pybuda.config.configure_mixed_precision(op_type="add", output_df=pybuda.DataFormat.Float16_b)
             pybuda.config.configure_mixed_precision(
                 op_type="depthwise", 
                 input_df={1: (pybuda.DataFormat.Float16_b, False),}, 
                 output_df=pybuda.DataFormat.Float16_b, 
                 math_fidelity=pybuda.MathFidelity.HiFi2
             )
-            # pybuda.config.configure_mixed_precision(op_type="multiply", math_fidelity=pybuda.MathFidelity.HiFi2)
+            # TODO: Should we remove this override? Evaluation score with this override is 0.6979, without it is 0.6875.
+            pybuda.config.configure_mixed_precision(op_type="multiply", math_fidelity=pybuda.MathFidelity.HiFi2)
             pybuda.config.configure_mixed_precision(op_type="matmul", math_fidelity=pybuda.MathFidelity.HiFi2)
         
         if pybuda.detect_available_devices()[0] != BackendDevice.Grayskull:
