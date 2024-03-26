@@ -83,6 +83,11 @@ def flant5_past_cache_enc_dec(training: bool, task: str, config: str, microbatch
         compiler_cfg.compile_subgraphs = True
         compiler_cfg.enable_link_past_cache_ios = True
 
+        # if data_type == "Bfp8_b":
+        #     pybuda.config.configure_mixed_precision(op_type="add", output_df=pybuda.DataFormat.Float16_b)
+        #     pybuda.config.configure_mixed_precision(op_type="subtract", output_df=pybuda.DataFormat.Float16_b)
+        #     pybuda.config.configure_mixed_precision(op_type="reciprocal", output_df=pybuda.DataFormat.Float16_b)
+
     # Set model parameters based on chosen task and model configuration
     if task in ["na", "text_classification", "text_summarization"]:
         if config == "small":

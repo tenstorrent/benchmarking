@@ -9,6 +9,7 @@ from torch.utils.data import DataLoader
 from tqdm import tqdm
 
 from ...common import BrainSegmentationDataset, DummyCVDataset, benchmark_model, torch_df_from_str
+from pybuda.config import _get_global_compiler_config
 
 
 @benchmark_model(configs=["256"])
@@ -16,27 +17,27 @@ def unet(training: bool, task: str, config: str, microbatch: int, device: str, d
     if device == "tt":
         import pybuda
         from pybuda._C.backend_api import BackendDevice
-
-        compiler_cfg = pybuda.config._get_global_compiler_config()
+        compiler_cfg = _get_global_compiler_config()
         compiler_cfg.enable_tvm_constant_prop = True
 
         if compiler_cfg.balancer_policy == "default":
             compiler_cfg.balancer_policy = "Ribbon"
             os.environ["PYBUDA_RIBBON2"] = "1"
 
-            # These are about to be enabled by default.
-            #
-            os.environ["PYBUDA_TEMP_ENABLE_NEW_FUSED_ESTIMATES"] = "1"
-            if data_type != "Bfp8_b":
-                os.environ["PYBUDA_TEMP_ENABLE_NEW_SPARSE_ESTIMATES"] = "1"
-
         # Manually enable amp light for Ribbon
         if compiler_cfg.balancer_policy == "Ribbon":
             compiler_cfg.enable_amp_light()
 
+        # These are about to be enabled by default.
+        #
+        os.environ["PYBUDA_TEMP_ENABLE_NEW_FUSED_ESTIMATES"] = "1"
+        if data_type == "Fp16_b":
+            os.environ["PYBUDA_TEMP_ENABLE_NEW_SPARSE_ESTIMATES"] = "1"
+
         if data_type == "Bfp8_b":
-            pybuda.config.configure_mixed_precision(op_type="matmul", output_df=pybuda.DataFormat.Float16_b)
-            pybuda.config.configure_mixed_precision(op_type="add", output_df=pybuda.DataFormat.Float16_b)
+            # pybuda.config.configure_mixed_precision(op_type="matmul", output_df=pybuda.DataFormat.Float16_b)
+            # pybuda.config.configure_mixed_precision(op_type="add", output_df=pybuda.DataFormat.Float16_b)
+            os.environ["PYBUDA_TEMP_DISABLE_MODEL_KB_PROLOGUE_BW"] = "1"
 
     # Set model parameters based on chosen task and model configuration
     if config == "256":
