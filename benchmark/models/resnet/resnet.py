@@ -12,7 +12,7 @@ from ...common import DummyCVDataset, ImageNetDataset, benchmark_model, torch_df
 
 
 @benchmark_model(configs=["resnet18", "resnet50"])
-def resnet(training: bool, task: str, config: str, microbatch: int, device: str, data_type: str):
+def resnet(training: bool, task: str, config: str, microbatch: int, device: str, data_type: str, math_fidelity: str):
 
     if device == "tt":
         import pybuda
@@ -25,21 +25,23 @@ def resnet(training: bool, task: str, config: str, microbatch: int, device: str,
             compiler_cfg.balancer_policy = "Ribbon"
             os.environ["PYBUDA_RIBBON2"] = "1"
 
-            # These are about to be enabled by default.
-            #
-            os.environ["PYBUDA_TEMP_ENABLE_NEW_FUSED_ESTIMATES"] = "1"
-            os.environ["PYBUDA_TEMP_SCALE_SPARSE_ESTIMATE_ARGS"] = "1"
-            os.environ["PYBUDA_RIBBON2_CALCULATE_TARGET_CYCLES"] = "1"
-            if data_type != "Bfp8_b":
-                os.environ["PYBUDA_TEMP_ENABLE_NEW_SPARSE_ESTIMATES"] = "1"
+        os.environ["PYBUDA_ENABLE_HOST_INPUT_NOP_BUFFERING"] = "1"
 
-        os.environ["PYBUDA_DISABLE_DYNAMIC_DRAM"] = "1"
+        # These are about to be enabled by default.
+        #
+        os.environ["PYBUDA_TEMP_ENABLE_NEW_FUSED_ESTIMATES"] = "1"
+        os.environ["PYBUDA_TEMP_SCALE_SPARSE_ESTIMATE_ARGS"] = "1"
+        os.environ["PYBUDA_RIBBON2_CALCULATE_TARGET_CYCLES"] = "1"
+        os.environ["PYBUDA_TEMP_ENABLE_NEW_SPARSE_ESTIMATES"] = "1"
+
+        if data_type == "Fp16_b":
+            os.environ["PYBUDA_RIBBON2_CALCULATE_TARGET_CYCLES_APPLY_FILTERING"] = "1"
 
         if pybuda.detect_available_devices()[0] != BackendDevice.Wormhole_B0:
             os.environ["PYBUDA_EXTRA_L1_MARGIN"] = "100000"
 
-        if pybuda.detect_available_devices()[0] == BackendDevice.Grayskull:
-            pybuda.config.override_op_size("conv2d_726.dc.sparse_matmul.9.dc.sparse_matmul.1.lc2", (6, 1))
+        if data_type == "Bfp8_b":
+            pybuda.config.configure_mixed_precision(name_regex="input.*add.*", output_df=pybuda.DataFormat.Float16_b)
 
     # Set model parameters based on chosen task and model configuration
     if config == "resnet18":

@@ -14,32 +14,30 @@ from ...common import DummyCVDataset, ImageNetDataset, benchmark_model, torch_df
 
 
 @benchmark_model(configs=["19", "39", "99"])
-def vovnet_v2(training: bool, task: str, config: str, microbatch: int, device: str, data_type: str):
+def vovnet_v2(training: bool, task: str, config: str, microbatch: int, device: str, data_type: str, math_fidelity: str):
 
     if device == "tt":
         import pybuda
 
         compiler_cfg = pybuda.config._get_global_compiler_config()
+        compiler_cfg.enable_auto_transposing_placement = True
 
         if compiler_cfg.balancer_policy == "default":
             compiler_cfg.balancer_policy = "Ribbon"
-            os.environ["PYBUDA_RIBBON2"] = "1"
+            os.environ["PYBUDA_RIBBON2"] = "1" 
 
         os.environ["PYBUDA_DISABLE_EXPLICIT_DRAM_IO"] = "1"
+        os.environ["PYBUDA_ENABLE_HOST_INPUT_NOP_BUFFERING"] = "1"
 
         # These are about to be enabled by default.
-        if data_type != "Bfp8_b":
-            os.environ["PYBUDA_TEMP_ENABLE_NEW_SPARSE_ESTIMATES"] = "1"
-            os.environ["PYBUDA_TEMP_SCALE_SPARSE_ESTIMATE_ARGS"] = "1"
-            os.environ["PYBUDA_RIBBON2_CALCULATE_TARGET_CYCLES"] = "1"
-
+        #
         os.environ["PYBUDA_TEMP_ENABLE_NEW_FUSED_ESTIMATES"] = "1"
+        os.environ["PYBUDA_TEMP_SCALE_SPARSE_ESTIMATE_ARGS"] = "1"
+        os.environ["PYBUDA_RIBBON2_CALCULATE_TARGET_CYCLES"] = "1"
+        os.environ["PYBUDA_TEMP_ENABLE_NEW_SPARSE_ESTIMATES"] = "1"
 
         if config == "39" and data_type != "Bfp8_b":
             compiler_cfg.enable_amp_light()
-
-        if data_type == "Bfp8_b":
-            os.environ["PYBUDA_LEGACY_KERNEL_BROADCAST"] = "1"
 
     # Set model parameters based on chosen task and model configuration
     img_res = 224

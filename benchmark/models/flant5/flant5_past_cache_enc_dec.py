@@ -55,7 +55,7 @@ class T5_decoder(torch.nn.Module):
 
 
 @benchmark_model(configs=["small", "base", "large"])
-def flant5_past_cache_enc_dec(training: bool, task: str, config: str, microbatch: int, device: str, data_type: str):
+def flant5_past_cache_enc_dec(training: bool, task: str, config: str, microbatch: int, device: str, data_type: str, math_fidelity: str):
 
     if device == "tt":
         import pybuda

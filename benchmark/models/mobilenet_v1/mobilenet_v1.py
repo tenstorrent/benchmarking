@@ -12,7 +12,7 @@ from ...common import DummyCVDataset, ImageNetDataset, benchmark_model, torch_df
 
 
 @benchmark_model(configs=["192", "224"])
-def mobilenetv1(training: bool, task: str, config: str, microbatch: int, device: str, data_type: str):
+def mobilenetv1(training: bool, task: str, config: str, microbatch: int, device: str, data_type: str, math_fidelity: str):
 
     if device == "tt":
         import pybuda
@@ -24,20 +24,30 @@ def mobilenetv1(training: bool, task: str, config: str, microbatch: int, device:
             compiler_cfg.balancer_policy = "Ribbon"
             os.environ["PYBUDA_RIBBON2"] = "1"
 
-        os.environ["PYBUDA_SUPRESS_T_FACTOR_MM"] = "8"
+        os.environ["PYBUDA_ENABLE_HOST_INPUT_NOP_BUFFERING"] = "1"
 
         # These are about to be enabled by default.
         #
         os.environ["PYBUDA_TEMP_ENABLE_NEW_FUSED_ESTIMATES"] = "1"
-        if data_type != "Bfp8_b":
-            os.environ["PYBUDA_TEMP_ENABLE_NEW_SPARSE_ESTIMATES"] = "1"
+        os.environ["PYBUDA_TEMP_SCALE_SPARSE_ESTIMATE_ARGS"] = "1"
+        os.environ["PYBUDA_RIBBON2_CALCULATE_TARGET_CYCLES"] = "1"
+        os.environ["PYBUDA_TEMP_ENABLE_NEW_SPARSE_ESTIMATES"] = "1"
+
+        if data_type == "Fp16_b":
+            os.environ["PYBUDA_SUPRESS_T_FACTOR_MM"] = "40"
 
         if data_type == "Bfp8_b":
-            # tenstorrent/pybuda#2228
-            os.environ["PYBUDA_LEGACY_KERNEL_BROADCAST"] = "1"
+            os.environ["PYBUDA_TEMP_SCALE_SPARSE_ESTIMATE_ARGS"] = "1"
             pybuda.config.configure_mixed_precision(name_regex="input.*add.*", output_df=pybuda.DataFormat.Float16_b)
             pybuda.config.configure_mixed_precision(op_type="add", output_df=pybuda.DataFormat.Float16_b)
-            pybuda.config.configure_mixed_precision(op_type="depthwise", output_df=pybuda.DataFormat.Float16_b)
+            if math_fidelity == "LoFi":
+                pybuda.config.configure_mixed_precision(op_type="multiply", math_fidelity=pybuda.MathFidelity.HiFi2)
+                pybuda.config.configure_mixed_precision(op_type="depthwise", output_df=pybuda.DataFormat.Float16_b, math_fidelity=pybuda.MathFidelity.HiFi2)
+            else:
+                pybuda.config.configure_mixed_precision(op_type="depthwise", output_df=pybuda.DataFormat.Float16_b)
+
+        if data_type == "Fp16_b":
+            os.environ["PYBUDA_TEMP_DISABLE_MODEL_KB_PROLOGUE_BW"] = "1"
 
     # Set model parameters based on chosen task and model configuration
     if config == "192":

@@ -14,7 +14,7 @@ from ...common import BenchmarkRun, DummyPipelineDataset, benchmark_model, torch
 
 @benchmark_model(configs=["v1-4"])
 def stable_diffusion(
-    training: bool, task: str, config: str, microbatch: int, device: str, data_type: str, benchmark_run: BenchmarkRun
+    training: bool, task: str, config: str, microbatch: int, device: str, data_type: str, math_fidelity: str, benchmark_run: BenchmarkRun
 ):
     import pybuda
 

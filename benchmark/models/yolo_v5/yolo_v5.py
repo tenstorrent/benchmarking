@@ -13,7 +13,7 @@ from ...common import COCODataset, DummyCVDataset, benchmark_model, torch_df_fro
 
 
 @benchmark_model(configs=["s"])
-def yolo_v5(training: bool, task: str, config: str, microbatch: int, device: str, data_type: str):
+def yolo_v5(training: bool, task: str, config: str, microbatch: int, device: str, data_type: str, math_fidelity):
 
     if device == "tt":
         import pybuda
@@ -25,24 +25,26 @@ def yolo_v5(training: bool, task: str, config: str, microbatch: int, device: str
             compiler_cfg.balancer_policy = "Ribbon"
             os.environ["PYBUDA_RIBBON2"] = "1"
 
-            # These are about to be enabled by default.
-            #
-            os.environ["PYBUDA_TEMP_ENABLE_NEW_FUSED_ESTIMATES"] = "1"
-            if data_type != "Bfp8_b":
-                os.environ["PYBUDA_TEMP_ENABLE_NEW_SPARSE_ESTIMATES"] = "1"
-
-            if data_type == "Bfp8_b":
-                os.environ["PYBUDA_FORK_JOIN_SKIP_EXPANDING_BUFFERS"] = "1"
-                os.environ["PYBUDA_TEMP_SCALE_SPARSE_ESTIMATE_ARGS"] = "1"
-                os.environ["PYBUDA_RIBBON2_CALCULATE_TARGET_CYCLES"] = "1"
-
+        from pybuda._C.backend_api import BackendDevice
         available_devices = pybuda.detect_available_devices()
+        if available_devices[0] == BackendDevice.Wormhole_B0:
+            os.environ["PYBUDA_SUPRESS_T_FACTOR_MM"] = "49"
+
+        # Temp perf workaround for tenstorrent/bbe#2595
+        os.environ["PYBUDA_PAD_OUTPUT_BUFFER"] = "1"
+
+        # These are about to be enabled by default.
+        #
+        os.environ["PYBUDA_TEMP_ENABLE_NEW_FUSED_ESTIMATES"] = "1"
+        os.environ["PYBUDA_TEMP_SCALE_SPARSE_ESTIMATE_ARGS"] = "1"
+        os.environ["PYBUDA_TEMP_ENABLE_NEW_SPARSE_ESTIMATES"] = "1"
+
+        if data_type == "Bfp8_b":
+            os.environ["PYBUDA_FORK_JOIN_SKIP_EXPANDING_BUFFERS"] = "1"
+            os.environ["PYBUDA_TEMP_DISABLE_MODEL_KB_PROLOGUE_BW"] = "1"
+
         if available_devices[0] == BackendDevice.Grayskull:
             compiler_cfg.enable_tm_cpu_fallback = True
-            compiler_cfg.enable_auto_fusing = False  # required to fix accuracy
-            os.environ["PYBUDA_DECOMPOSE_SIGMOID"] = "1"
-        elif available_devices[0] == BackendDevice.Wormhole_B0:
-            os.environ["PYBUDA_SUPRESS_T_FACTOR_MM"] = "49"
 
     # Set model parameters based on chosen task and model configuration
     if config == "s":

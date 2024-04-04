@@ -19,7 +19,7 @@ torch.manual_seed(42)
 
 @benchmark_model(configs=["7b", "7b-instruct"])
 def falcon(
-    training: bool, task: str, config: str, microbatch: int, device: str, data_type: str, benchmark_run: BenchmarkRun
+    training: bool, task: str, config: str, microbatch: int, device: str, data_type: str, math_fidelity: str, benchmark_run: BenchmarkRun
 ):
 
     # Set model parameters based on chosen task and model configuration

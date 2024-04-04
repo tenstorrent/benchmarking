@@ -508,6 +508,7 @@ if __name__ == "__main__":
         "task": args.task,
         "device": args.device,
         "data_type": args.dataformat,
+        "math_fidelity": args.math_fidelity
     }
     func = models[args.model]["func"]
     available_parameters = inspect.signature(func).parameters

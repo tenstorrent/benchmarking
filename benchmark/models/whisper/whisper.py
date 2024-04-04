@@ -1,6 +1,7 @@
 # SPDX-FileCopyrightText: © 2023 Tenstorrent Inc.
 # SPDX-License-Identifier: Apache-2.0
 
+import os
 import torch
 from datasets import load_dataset
 from evaluate import load
@@ -17,7 +18,16 @@ def whisper(training: bool, task: str, config: str, microbatch: int, device: str
         from pybuda.transformers.pipeline import pipeline as pybuda_pipeline
 
         compiler_cfg = pybuda.config._get_global_compiler_config()
-        compiler_cfg.enable_t_streaming = True
+
+        if compiler_cfg.balancer_policy == "default":
+            compiler_cfg.balancer_policy = "Ribbon"
+            os.environ["PYBUDA_RIBBON2"] = "1"
+
+        # These are about to be enabled by default.
+        #
+        os.environ["PYBUDA_TEMP_SCALE_SPARSE_ESTIMATE_ARGS"] = "1"
+        os.environ["PYBUDA_TEMP_ENABLE_NEW_FUSED_ESTIMATES"] = "1"
+        os.environ["PYBUDA_TEMP_ENABLE_NEW_SPARSE_ESTIMATES"] = "1"
 
     # Set model parameters based on chosen task and model configuration
     if task == "na" or task == "asr":

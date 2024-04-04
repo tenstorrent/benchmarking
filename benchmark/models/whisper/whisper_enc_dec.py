@@ -14,7 +14,7 @@ from ...common import DummyPipelineDataset, LibriSpeechDataset, benchmark_model
 
 
 @benchmark_model(configs=["tiny", "base", "small", "medium", "large"])
-def whisper_enc_dec(training: bool, task: str, config: str, microbatch: int, device: str, data_type: str):
+def whisper_enc_dec(training: bool, task: str, config: str, microbatch: int, device: str, data_type: str, math_fidelity: str):
     assert device == "tt", "This model is only supported on TT hardware"
 
     import pybuda
@@ -23,12 +23,14 @@ def whisper_enc_dec(training: bool, task: str, config: str, microbatch: int, dev
     compiler_cfg = pybuda.config._get_global_compiler_config()
 
     if compiler_cfg.balancer_policy == "default":
-        compiler_cfg.balancer_policy = "NLP"
-
-    if pybuda.detect_available_devices()[0] == BackendDevice.Grayskull:
-        compiler_cfg.enable_auto_fusing = False
         compiler_cfg.balancer_policy = "Ribbon"
         os.environ["PYBUDA_RIBBON2"] = "1"
+
+    # These are about to be enabled by default.
+    #
+    os.environ["PYBUDA_TEMP_SCALE_SPARSE_ESTIMATE_ARGS"] = "1"
+    os.environ["PYBUDA_TEMP_ENABLE_NEW_FUSED_ESTIMATES"] = "1"
+    os.environ["PYBUDA_TEMP_ENABLE_NEW_SPARSE_ESTIMATES"] = "1"
 
     # Set model parameters based on chosen task and model configuration
     if task == "na" or task == "asr":
