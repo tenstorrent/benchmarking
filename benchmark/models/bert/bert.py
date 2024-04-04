@@ -36,7 +36,8 @@ def bert(training: bool, task: str, config: str, microbatch: int, device: str, d
         available_devices = pybuda.detect_available_devices()
         if available_devices[0] == BackendDevice.Grayskull:
             os.environ["TT_BACKEND_OVERLAY_MAX_EXTRA_BLOB_SIZE"] = f"{18*1024}"
-            pybuda.config.override_op_size("gelu_103", (3, 1))
+            if config == "large":
+                pybuda.config.override_op_size("gelu_103", (3, 1))
 
     # Set model parameters based on chosen task and model configuration
     if task == "na":
