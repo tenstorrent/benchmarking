@@ -156,13 +156,13 @@ The script optionally outputs a .json file with benchmark results and options us
 allowing the user to run multiple benchmark back-to-back, like:
 
 ```bash
-python benchmark.py -d tt -m bert -c tiny --task text_classification --save_output
+python benchmark.py -d tt -m bert -c base --task text_classification --save_output
 ```
 
 or
 
 ```bash
-python benchmark.py -d cuda -m bert -c tiny --task text_classification --save_output
+python benchmark.py -d cuda -m bert -c base --task text_classification --save_output
 ```
 
 To see which models and configurations are currently supported, run:
