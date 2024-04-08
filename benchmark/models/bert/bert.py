@@ -3,13 +3,13 @@
 
 import os
 
-import torch
+
 from datasets import load_dataset
 from torch.utils.data import DataLoader
 from transformers import BertConfig, BertForSequenceClassification, BertForTokenClassification, BertModel, BertTokenizer
 
 from ...common import DummyNLPDataset, SST2Dataset, StackExchangeDataset, benchmark_model, torch_df_from_str
-
+import torch
 
 @benchmark_model(configs=["tiny", "base", "large"])
 def bert(training: bool, task: str, config: str, microbatch: int, device: str, data_type: str):
