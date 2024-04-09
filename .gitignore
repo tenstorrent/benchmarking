@@ -22,3 +22,5 @@ venv/
 ENV/
 env.bak/
 venv.bak/
+
+!check_copyright_config.yaml
