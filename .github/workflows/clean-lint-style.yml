@@ -26,11 +26,11 @@ jobs:
       - name: Install dependencies and run clean and lint
         run: |
           python -m venv venv
-          source venv/bin/activate && \
-          pip install --upgrade pip==24.0 && \
-          pip install -r requirements-dev.txt && \
-          make clean && \
-          make clean_tt && \
+          source venv/bin/activate
+          pip install --upgrade pip==24.0
+          pip install -r requirements-dev.txt
+          make clean
+          make clean_tt
           make style
 
       - name: Check if GPG key exists
