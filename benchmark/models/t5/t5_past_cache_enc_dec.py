@@ -62,6 +62,8 @@ def t5_past_cache_enc_dec(training: bool, task: str, config: str, microbatch: in
         from pybuda._C.backend_api import BackendDevice
         from pybuda.pybudaglobal import TILE_DIM
 
+        compiler_cfg = pybuda.config._get_global_compiler_config()
+
         # ---------------------------------------------------------------------------------------- #
         # T5, START
         # ---------------------------------------------------------------------------------------- #
@@ -95,7 +97,6 @@ def t5_past_cache_enc_dec(training: bool, task: str, config: str, microbatch: in
         os.environ["PYBUDA_ROTATE_PAST_CACHE_PARAMS"] = "1"
 
         # Compiler configurations
-        compiler_cfg = pybuda.config._get_global_compiler_config()
         compiler_cfg.enable_tvm_cpu_fallback = False
         compiler_cfg.default_df_override = pybuda._C.Float16_b
         compiler_cfg.default_dram_parameters = False
