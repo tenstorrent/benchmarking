@@ -58,3 +58,4 @@ jobs:
           commit_user_email: aramchandran@tenstorrent.com
           commit_options: ${{ env.GPG_KEY_EXISTS == 'true' && '-S' || '' }}
           branch: ${{ github.head_ref }}
+          
