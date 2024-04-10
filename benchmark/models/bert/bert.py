@@ -111,6 +111,10 @@ def bert(training: bool, task: str, config: str, microbatch: int, device: str, d
         model = BertForSequenceClassification.from_pretrained(model_name)
         tokenizer = BertTokenizer.from_pretrained(model_name)
 
+        print("\n")
+        print(model)
+        print("\n")
+
         # Configure model mode for training or evaluation
         if training:
             model.train()
