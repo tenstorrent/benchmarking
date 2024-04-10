@@ -81,15 +81,13 @@ make style
 ### Code reviews
 
 - A PR must be opened for any code change with the following criteria:
-  - Be approved, by a maintaining team member and any codeowners whose modules
-    are relevant for the PR.
+  - Be approved by a maintaining team member and any code owners whose modules are relevant for the PR.
   - Run pre-commit hooks.
-  - Pass automated github actions worksflow test
+  - Pass automated GitHub Actions workflow tests.
   - Pass any acceptance criteria mandated in the original issue.
-  - Pass any testing criteria mandated by codeowners whose modules are relevant
-    for the PR.
+  - Pass any testing criteria mandated by code owners whose modules are relevant for the PR.
 
-or more information on the GitHub Actions and Pull Request Workflow, please see the [GitHub Actions and Pull Request Workflow section](#github-actions-and-pull-request-workflow) within the document.
+For more information on the GitHub Actions and Pull Request Workflow, please see the [GitHub Actions and Pull Request Workflow section](#github-actions-and-pull-request-workflow) within this document.
 
 ### GitHub Actions and Pull Request Workflow
 
@@ -98,11 +96,21 @@ or more information on the GitHub Actions and Pull Request Workflow, please see 
 Linting, styling, and cleaning checks are automatically performed on pull requests using GitHub Actions. This ensures that contributed code meets standard Python coding standards before it's merged into the main branch.
 
 1. **Pull Request Process**: When you open a pull request, GitHub Actions will automatically trigger linting, styling, and cleaning checks on the changes made within the `benchmarking` directory.
-
 2. **Approval Requirement**: In order to merge a pull request, it must pass the GitHub Actions workflow test. This ensures that all contributions adhere to our coding standards and maintain consistency throughout our `benchmarking` repository.
-
 3. **Interpreting Results**: If linting fails on your pull request, review the output to identify and fix any issues. You'll need to address these issues before the pull request can be approved and merged. In case of repeated failures or failures within the GitHub Actions workflow files, please reach out to one of the repository maintainers from the [Maintainers.md](MAINTAINERS.md).
 
 #### Automated Commit by GitHub Actions
 
-The GitHub Actions workflow also automatically makes a commit with the message ```*** AUTOMATED COMMIT | Applied Code Formatting and Cleanup ✨ 🍰 ✨***``` authored by ```[anirudTT]``` when it performs code formatting and cleanup. If you open a pull request and subsequently push more changes, we suggest **rebasing or pulling again** from the pull request branch before pushing your changes again to avoid conflicts.
+The GitHub Actions workflow also automatically makes a commit with the message `*** AUTOMATED COMMIT | Applied Code Formatting and Cleanup ✨ 🍰 ✨***` authored by `[anirudTT]` when it performs code formatting and cleanup. If you open a pull request and subsequently push more changes, we suggest **rebasing or pulling again** from the pull request branch before pushing your changes again to avoid conflicts.
+
+#### SPDX License Compliance Check
+
+Our project enforces SPDX license compliance for all Python files through automated checks integrated within our GitHub Actions workflows. These workflows, `check-license-year.yml` and `license-checker.yml`, automatically verify the presence and accuracy of SPDX license headers and the specified license year in Python files included in pull requests.
+
+- **License Year Validation**: The `check-license-year.yml` workflow checks for the correct SPDX license year (`2024`) in newly changed Python files. If files lacking the correct year or license identifier are detected, the workflow comments on the PR with details on the missing elements and fails to highlight the need for compliance.
+
+- **License Header Checks**: Similarly, the `license-checker.yml` workflow assesses if Python files in the PR contain valid SPDX license headers as per the configurations specified in `check_copyright_config.yaml`. Non-compliant files are listed in an automated comment on the PR, urging contributors to update their files accordingly.
+
+- **Action on Non-Compliance**: PRs flagged for non-compliance with SPDX license requirements will not pass the automated checks, preventing them from being merged. Contributors are encouraged to follow the detailed instructions in the automated comments to rectify any issues and achieve compliance.
+
+This process is part of our commitment to maintaining high standards of open-source stewardship and ensuring all contributions are appropriately licensed.
