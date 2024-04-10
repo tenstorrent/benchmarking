@@ -113,4 +113,28 @@ Our project enforces SPDX license compliance for all Python files through automa
 
 - **Action on Non-Compliance**: PRs flagged for non-compliance with SPDX license requirements will not pass the automated checks, preventing them from being merged. Contributors are encouraged to follow the detailed instructions in the automated comments to rectify any issues and achieve compliance.
 
-This process is part of our commitment to maintaining high standards of open-source stewardship and ensuring all contributions are appropriately licensed.
+
+##### Actions to Take if Your PR Fails SPDX License Compliance Checks
+
+If your pull request fails due to non-compliance with SPDX license requirements, it's crucial to address these issues promptly to ensure your contributions can be merged into the project. Here's what you need to do:
+
+###### Review Automated Comments
+
+1. **Identify Issues**: Carefully review the automated comments left by the `check-license-year.yml` and `license-checker.yml` workflows on your pull request. These comments will specify which files are non-compliant and what specific compliance issues need to be addressed (e.g., incorrect license year, missing SPDX license header).
+
+2. **Understand Required Changes**: Each comment will provide detailed instructions on how to rectify the compliance issues. This may involve adding or updating the SPDX license headers in the specified files or correcting the license year.
+
+###### Correcting Compliance Issues
+
+1. **Update Your Files**: Based on the guidance provided in the automated comments, make the necessary changes to your files.
+
+2. **Verify Changes Locally**: Before pushing your changes, it's a good practice to locally review the files you've updated to ensure they now comply with the project's SPDX license requirements.
+
+3. **Push Your Updates**: Once you've made the necessary corrections, commit your changes and push them to your branch associated with the pull request. GitHub Actions will automatically re-run the compliance checks on the updated pull request.
+
+###### After Correcting Issues
+
+- **Automated Re-check**: After you push your updates, the GitHub Actions workflows will automatically re-run the SPDX license compliance checks on the modified pull request. If all issues have been correctly addressed, the previously failed checks should now pass.
+
+- **Seek Further Assistance**: If you've made the recommended changes but your pull request still fails the compliance checks, or if you need clarification on the required actions, don't hesitate to ask for help. You can comment on your pull request tagging a maintainer, or refer to the [Maintainers.md](Maintainers.md) document to contact maintainers directly.
+
