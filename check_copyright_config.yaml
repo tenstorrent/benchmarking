@@ -15,7 +15,7 @@ DEFAULT:
     """
 
   # Define the template for replacing comment lines with SPDX notation
-  espressif_copyright: '© {years} Tenstorrent Inc.'
+  espressif_copyright: '© {years} Tenstorrent AI ULC'
 
   # Update the include section with the file types you want to check
   include:
