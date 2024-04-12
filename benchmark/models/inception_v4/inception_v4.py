@@ -21,9 +21,8 @@ def inception_v4(training: bool, task: str, config: str, microbatch: int, device
         from pybuda._C.backend_api import BackendDevice
 
         # Configurations
-        compiler_cfg = pybuda.config._get_global_compiler_config() 
+        compiler_cfg = pybuda.config._get_global_compiler_config()
         compiler_cfg.enable_auto_transposing_placement = True
-
 
         if compiler_cfg.balancer_policy == "default":
             compiler_cfg.balancer_policy = "Ribbon"
@@ -33,16 +32,10 @@ def inception_v4(training: bool, task: str, config: str, microbatch: int, device
         #
         os.environ["PYBUDA_TEMP_ENABLE_NEW_FUSED_ESTIMATES"] = "1"
         os.environ["PYBUDA_TEMP_ENABLE_NEW_SPARSE_ESTIMATES"] = "1"
+        os.environ["PYBUDA_RIBBON2_CONSERVATIVE_OPTIMIZATION_ITERATIONS"] = "10"
 
         if data_type == "Bfp8_b":
             os.environ["PYBUDA_TEMP_SCALE_SPARSE_ESTIMATE_ARGS"] = "1"
-
-        if compiler_cfg.balancer_policy == "Ribbon":
-            available_devices = pybuda.detect_available_devices()
-            from pybuda._C.backend_api import BackendDevice
-            if available_devices:
-                if available_devices[0] == BackendDevice.Grayskull:
-                    pybuda.config._internal_insert_fj_buffering_nop("conv2d_28.dc.matmul.11", ["conv2d_43.dc.sparse_matmul.9.dc.sparse_matmul.1.lc2"], nop_count=3)
 
     if config == "224":
         model_name = "inception_v4"

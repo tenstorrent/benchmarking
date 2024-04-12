@@ -48,7 +48,8 @@ def mobilenetv2(training: bool, task: str, config: str, microbatch: int, device:
             pybuda.config.configure_mixed_precision(op_type="multiply", math_fidelity=pybuda.MathFidelity.HiFi2)
             pybuda.config.configure_mixed_precision(op_type="matmul", math_fidelity=pybuda.MathFidelity.HiFi2)
 
-        if pybuda.detect_available_devices()[0] == BackendDevice.Grayskull:
+        available_devices = pybuda.detect_available_devices()
+        if available_devices[0] == BackendDevice.Grayskull:
             os.environ["PYBUDA_MAXIMIZE_SPARSE_UBLOCK"] = "1"
             os.environ["PYBUDA_FORK_JOIN_SKIP_EXPANDING_BUFFERS"] = "1" 
             os.environ["PYBUDA_RIBBON2_OPTIMIZATION_ITERATIONS"] = "10" 

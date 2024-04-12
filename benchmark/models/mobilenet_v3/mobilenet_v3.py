@@ -38,8 +38,10 @@ def mobilenetv3(training: bool, task: str, config: str, microbatch: int, device:
         os.environ["PYBUDA_TEMP_ENABLE_NEW_FUSED_ESTIMATES"] = "1"
         os.environ["PYBUDA_TEMP_ENABLE_NEW_SPARSE_ESTIMATES"] = "1"
         os.environ["PYBUDA_TEMP_SCALE_SPARSE_ESTIMATE_ARGS"] = "1"
+        os.environ["PYBUDA_RIBBON2_CONSERVATIVE_OPTIMIZATION_ITERATIONS"] = "10"
 
-        if pybuda.detect_available_devices()[0] == BackendDevice.Grayskull:
+        available_devices = pybuda.detect_available_devices()
+        if available_devices[0] == BackendDevice.Grayskull:
             os.environ["PYBUDA_MAXIMIZE_SPARSE_UBLOCK"] = "1" 
             os.environ["PYBUDA_SUPRESS_T_FACTOR_MM"] = "16" 
             os.environ["PYBUDA_FUSED_OP_MULTIPLIER"] = "7"

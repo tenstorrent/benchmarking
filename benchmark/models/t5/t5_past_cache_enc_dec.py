@@ -115,6 +115,11 @@ def t5_past_cache_enc_dec(training: bool, task: str, config: str, microbatch: in
             #     if config == "small":
             #         os.environ["PYBUDA_FORK_JOIN_SKIP_EXPANDING_BUFFERS"] = "1"
             #         os.environ["PYBUDA_MAX_FORK_JOIN_BUF"] = "1"
+    
+        if data_type == "Bfp8_b":
+            pybuda.config.configure_mixed_precision(op_type="add", output_df=pybuda.DataFormat.Float16_b)
+            pybuda.config.configure_mixed_precision(op_type="subtract", output_df=pybuda.DataFormat.Float16_b)
+            pybuda.config.configure_mixed_precision(op_type="reciprocal", output_df=pybuda.DataFormat.Float16_b)
 
     # Set model parameters based on chosen task and model configuration
     if task in ["na", "text_classification", "text_summarization"]:

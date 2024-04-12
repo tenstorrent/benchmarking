@@ -26,6 +26,7 @@ def resnet(training: bool, task: str, config: str, microbatch: int, device: str,
             os.environ["PYBUDA_RIBBON2"] = "1"
 
         os.environ["PYBUDA_ENABLE_HOST_INPUT_NOP_BUFFERING"] = "1"
+        os.environ["PYBUDA_ALLOW_MULTICOLUMN_SPARSE_MATMUL"] = "1"
 
         # These are about to be enabled by default.
         #
@@ -33,11 +34,13 @@ def resnet(training: bool, task: str, config: str, microbatch: int, device: str,
         os.environ["PYBUDA_TEMP_SCALE_SPARSE_ESTIMATE_ARGS"] = "1"
         os.environ["PYBUDA_RIBBON2_CALCULATE_TARGET_CYCLES"] = "1"
         os.environ["PYBUDA_TEMP_ENABLE_NEW_SPARSE_ESTIMATES"] = "1"
+        os.environ["PYBUDA_RIBBON2_CONSERVATIVE_OPTIMIZATION_ITERATIONS"] = "10"
 
         if data_type == "Fp16_b":
             os.environ["PYBUDA_RIBBON2_CALCULATE_TARGET_CYCLES_APPLY_FILTERING"] = "1"
 
-        if pybuda.detect_available_devices()[0] != BackendDevice.Wormhole_B0:
+        available_devices = pybuda.detect_available_devices()
+        if available_devices[0] != BackendDevice.Wormhole_B0:
             os.environ["PYBUDA_EXTRA_L1_MARGIN"] = "100000"
 
         if data_type == "Bfp8_b":

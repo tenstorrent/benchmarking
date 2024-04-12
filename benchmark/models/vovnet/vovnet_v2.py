@@ -35,6 +35,7 @@ def vovnet_v2(training: bool, task: str, config: str, microbatch: int, device: s
         os.environ["PYBUDA_TEMP_SCALE_SPARSE_ESTIMATE_ARGS"] = "1"
         os.environ["PYBUDA_RIBBON2_CALCULATE_TARGET_CYCLES"] = "1"
         os.environ["PYBUDA_TEMP_ENABLE_NEW_SPARSE_ESTIMATES"] = "1"
+        os.environ["PYBUDA_RIBBON2_CONSERVATIVE_OPTIMIZATION_ITERATIONS"] = "10"
 
         if config == "39" and data_type != "Bfp8_b":
             compiler_cfg.enable_amp_light()
