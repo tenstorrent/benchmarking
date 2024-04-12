@@ -105,9 +105,9 @@ The GitHub Actions workflow also automatically makes a commit with the message `
 
 #### SPDX License Compliance Check
 
-Our project enforces SPDX license compliance for all files through automated checks integrated within our GitHub Actions workflows. These workflows, `check-license.yml` and `license-checker.yml`, automatically verify the presence and accuracy of SPDX license headers and the specified license year, correct company mentions within license headers in files included in pull requests.
+Our project enforces SPDX license compliance for all files through automated checks integrated within our GitHub Actions workflows. These workflows, `check-license-header.yml` and `license-checker.yml`, automatically verify the presence and accuracy of SPDX license headers and the specified license year, correct company mentions within license headers in files included in pull requests.
 
-- **License Validation**: The `check-license.yml`  workflow checks for the correct SPDX license year and the proper mention of the company name, "Tenstorrent AI ULC", in newly changed files. If files are found lacking either the correct year, the correct license identifier, or the proper company mention, the workflow comments on the PR with details about the missing elements and fails to highlight the need for compliance. This ensures that all changes adhere to licensing standards and maintain corporate copyright claims properly.
+- **License Validation**: The `check-license-header.yml`  workflow checks for the correct SPDX license year and the proper mention of the company name, "Tenstorrent AI ULC", in newly changed files. If files are found lacking either the correct year, the correct license identifier, or the proper company mention, the workflow comments on the PR with details about the missing elements and fails to highlight the need for compliance. This ensures that all changes adhere to licensing standards and maintain corporate copyright claims properly.
 
 - **License Header Checks**: Similarly, the `license-checker.yml` workflow assesses if files in the PR contain valid SPDX license headers as per the configurations specified in `check_copyright_config.yaml`. Non-compliant files are listed in an automated comment on the PR, urging contributors to update their files accordingly.
 
@@ -120,7 +120,7 @@ If your pull request fails due to non-compliance with SPDX license requirements,
 
 ###### Review Automated Comments
 
-1. **Identify Issues**: Carefully review the automated comments left by the `check-license.yml` and `license-checker.yml` workflows on your pull request. These comments will specify which files are non-compliant and what specific compliance issues need to be addressed (e.g., incorrect license year, missing SPDX license header).
+1. **Identify Issues**: Carefully review the automated comments left by the `check-license-header.yml` and `license-checker.yml` workflows on your pull request. These comments will specify which files are non-compliant and what specific compliance issues need to be addressed (e.g., incorrect license year, missing SPDX license header).
 
 2. **Understand Required Changes**: Each comment will provide detailed instructions on how to rectify the compliance issues. This may involve adding or updating the SPDX license headers in the specified files or correcting the license year or the company name within the license.
 
