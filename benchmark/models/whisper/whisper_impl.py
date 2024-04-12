@@ -88,6 +88,8 @@ def generate_model_whisper_enc_dec(variant):
         os.environ["PYBUDA_GRAPHSOLVER_SELF_CUT_TYPE"] = "None"
         compiler_cfg.enable_auto_fusing = False
 
+    # (1) ----------------------------------------------------- #
+
     # pybuda.set_configuration_options(performance_trace=pybuda.PerfTraceLevel.VERBOSE)
     processor = AutoProcessor.from_pretrained(variant)
     config = WhisperConfig.from_pretrained(variant)
@@ -119,6 +121,8 @@ def generate_model_whisper_enc_dec(variant):
     decoder_module_cross_attention = pybuda.PyTorchModule("Whisper_decoder_with_ca", Whisper_decoder(model))
     decoder_module_no_cross_attention = pybuda.PyTorchModule("Whisper_decoder_no_ca", Whisper_decoder(model))
 
+    # (2) ----------------------------------------------------- #
+
     ds = load_dataset("hf-internal-testing/librispeech_asr_dummy", "clean", split="validation")
     smaller_dataset = []
     if True:
@@ -137,6 +141,8 @@ def generate_model_whisper_enc_dec(variant):
     encoder_last_hidden_state_shape = (1, padded_len, config.d_model)
     encoder_last_hidden_state = torch.zeros(encoder_last_hidden_state_shape)
 
+    # (3) ----------------------------------------------------- #
+
     logits_processor = model._get_logits_processor(
         model.generation_config, TILE_DIM, input_features, None, LogitsProcessorList()
     )
@@ -144,13 +150,11 @@ def generate_model_whisper_enc_dec(variant):
     decoder_input_ids = torch.ones((1, TILE_DIM), dtype=torch.int) * tokenizer.pad_token_id
     first_current_index = max_length - TILE_DIM
     position_embeds = torch.zeros((TILE_DIM, config.d_model))
-    enc_past_cache_self_shape = (
-        1,
-        config.decoder_attention_heads,
-        max_length - TILE_DIM,
-        config.d_model // config.decoder_attention_heads,
-    )
+    enc_past_cache_self_shape = (1, config.decoder_attention_heads, max_length - TILE_DIM, config.d_model // config.decoder_attention_heads,)
     enc_past_cache_cross_shape = (1, 1, 1, 1)
+
+    # (4) ----------------------------------------------------- #
+
 
     decoder_with_ca_inputs = [decoder_input_ids, decoder_attention_mask, encoder_last_hidden_state, position_embeds]
     for _ in range(config.decoder_layers):
@@ -175,6 +179,8 @@ def generate_model_whisper_enc_dec(variant):
             torch.zeros(enc_past_cache_cross_shape),
             torch.zeros(enc_past_cache_cross_shape),
         ]
+
+    # (5) ----------------------------------------------------- #
 
     # outputs
     compile_inputs = (
