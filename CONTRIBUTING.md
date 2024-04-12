@@ -81,15 +81,13 @@ make style
 ### Code reviews
 
 - A PR must be opened for any code change with the following criteria:
-  - Be approved, by a maintaining team member and any codeowners whose modules
-    are relevant for the PR.
+  - Be approved by a maintaining team member and any code owners whose modules are relevant for the PR.
   - Run pre-commit hooks.
-  - Pass automated github actions worksflow test
+  - Pass automated GitHub Actions workflow tests.
   - Pass any acceptance criteria mandated in the original issue.
-  - Pass any testing criteria mandated by codeowners whose modules are relevant
-    for the PR.
+  - Pass any testing criteria mandated by code owners whose modules are relevant for the PR.
 
-or more information on the GitHub Actions and Pull Request Workflow, please see the [GitHub Actions and Pull Request Workflow section](#github-actions-and-pull-request-workflow) within the document.
+For more information on the GitHub Actions and Pull Request Workflow, please see the [GitHub Actions and Pull Request Workflow section](#github-actions-and-pull-request-workflow) within this document.
 
 ### GitHub Actions and Pull Request Workflow
 
@@ -98,11 +96,45 @@ or more information on the GitHub Actions and Pull Request Workflow, please see 
 Linting, styling, and cleaning checks are automatically performed on pull requests using GitHub Actions. This ensures that contributed code meets standard Python coding standards before it's merged into the main branch.
 
 1. **Pull Request Process**: When you open a pull request, GitHub Actions will automatically trigger linting, styling, and cleaning checks on the changes made within the `benchmarking` directory.
-
 2. **Approval Requirement**: In order to merge a pull request, it must pass the GitHub Actions workflow test. This ensures that all contributions adhere to our coding standards and maintain consistency throughout our `benchmarking` repository.
-
 3. **Interpreting Results**: If linting fails on your pull request, review the output to identify and fix any issues. You'll need to address these issues before the pull request can be approved and merged. In case of repeated failures or failures within the GitHub Actions workflow files, please reach out to one of the repository maintainers from the [Maintainers.md](MAINTAINERS.md).
 
 #### Automated Commit by GitHub Actions
 
-The GitHub Actions workflow also automatically makes a commit with the message ```*** AUTOMATED COMMIT | Applied Code Formatting and Cleanup ✨ 🍰 ✨***``` authored by ```[anirudTT]``` when it performs code formatting and cleanup. If you open a pull request and subsequently push more changes, we suggest **rebasing or pulling again** from the pull request branch before pushing your changes again to avoid conflicts.
+The GitHub Actions workflow also automatically makes a commit with the message `*** AUTOMATED COMMIT | Applied Code Formatting and Cleanup ✨ 🍰 ✨***` authored by `[anirudTT]` when it performs code formatting and cleanup. If you open a pull request and subsequently push more changes, we suggest **rebasing or pulling again** from the pull request branch before pushing your changes again to avoid conflicts.
+
+#### SPDX License Compliance Check
+
+Our project enforces SPDX license compliance for all files through automated checks integrated within our GitHub Actions workflows. These workflows, `check-license-header.yml` and `license-checker.yml`, automatically verify the presence and accuracy of SPDX license headers and the specified license year, correct company mentions within license headers in files included in pull requests.
+
+- **License Validation**: The `check-license-header.yml`  workflow checks for the correct SPDX license year and the proper mention of the company name, "Tenstorrent AI ULC", in newly changed files. If files are found lacking either the correct year, the correct license identifier, or the proper company mention, the workflow comments on the PR with details about the missing elements and fails to highlight the need for compliance. This ensures that all changes adhere to licensing standards and maintain corporate copyright claims properly.
+
+- **License Header Checks**: Similarly, the `license-checker.yml` workflow assesses if files in the PR contain valid SPDX license headers as per the configurations specified in `check_copyright_config.yaml`. Non-compliant files are listed in an automated comment on the PR, urging contributors to update their files accordingly.
+
+- **Action on Non-Compliance**: PRs flagged for non-compliance with SPDX license requirements will not pass the automated checks, preventing them from being merged. Contributors are encouraged to follow the detailed instructions in the automated comments to rectify any issues and achieve compliance.
+
+
+##### Actions to Take if Your PR Fails SPDX License Compliance Checks
+
+If your pull request fails due to non-compliance with SPDX license requirements, it's crucial to address these issues promptly to ensure your contributions can be merged into the project. Here's what you need to do:
+
+###### Review Automated Comments
+
+1. **Identify Issues**: Carefully review the automated comments left by the `check-license-header.yml` and `license-checker.yml` workflows on your pull request. These comments will specify which files are non-compliant and what specific compliance issues need to be addressed (e.g., incorrect license year, missing SPDX license header).
+
+2. **Understand Required Changes**: Each comment will provide detailed instructions on how to rectify the compliance issues. This may involve adding or updating the SPDX license headers in the specified files or correcting the license year or the company name within the license.
+
+###### Correcting Compliance Issues
+
+1. **Update Your Files**: Based on the guidance provided in the automated comments, make the necessary changes to your files.
+
+2. **Verify Changes Locally**: Before pushing your changes, it's a good practice to locally review the files you've updated to ensure they now comply with the project's SPDX license requirements.
+
+3. **Push Your Updates**: Once you've made the necessary corrections, commit your changes and push them to your branch associated with the pull request. GitHub Actions will automatically re-run the compliance checks on the updated pull request.
+
+###### After Correcting Issues
+
+- **Automated Re-check**: After you push your updates, the GitHub Actions workflows will automatically re-run the SPDX license compliance checks on the modified pull request. If all issues have been correctly addressed, the previously failed checks should now pass.
+
+- **Seek Further Assistance**: If you've made the recommended changes but your pull request still fails the compliance checks, or if you need clarification on the required actions, don't hesitate to ask for help. You can comment on your pull request tagging a maintainer, or refer to the [Maintainers.md](Maintainers.md) document to contact maintainers directly.
+
