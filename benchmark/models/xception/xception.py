@@ -2,32 +2,25 @@
 # SPDX-License-Identifier: Apache-2.0
 
 import os
+
 import timm
+import torch
+from datasets import load_dataset
 from timm.data import resolve_data_config
 from timm.data.transforms_factory import create_transform
-from datasets import load_dataset
 from torch.utils.data import DataLoader
-from ...common import (
-    DummyCVDataset,
-    ImageNetDataset,
-    benchmark_model,
-    torch_df_from_str,
-)
-import torch
+
+from ...common import DummyCVDataset, ImageNetDataset, benchmark_model, torch_df_from_str
 
 
 @benchmark_model(configs=["xception", "xception41", "xception71", "xception65"])
-def xception(
-    training: bool, task: str, config: str, microbatch: int, device: str, data_type: str
-):
+def xception(training: bool, task: str, config: str, microbatch: int, device: str, data_type: str):
     if device == "tt":
         import pybuda
         from pybuda._C.backend_api import BackendDevice
 
         # Configurations
-        compiler_cfg = (
-            pybuda.config._get_global_compiler_config()
-        )  # load global compiler config object
+        compiler_cfg = pybuda.config._get_global_compiler_config()  # load global compiler config object
         available_devices = pybuda.detect_available_devices()
 
         if config == "xception" and available_devices[0] == BackendDevice.Wormhole_B0:
@@ -95,16 +88,12 @@ def xception(
             model = model.to(device, dtype=torch_df_from_str(data_type))
 
         # Create random inputs and targets
-        imagenet_dataset = load_dataset(
-            "imagenet-1k", split="validation", use_auth_token=True, streaming=True
-        )
+        imagenet_dataset = load_dataset("imagenet-1k", split="validation", use_auth_token=True, streaming=True)
         dataset_iter = iter(imagenet_dataset)
         dataset = []
         for _ in range(1000):
             dataset.append(next(dataset_iter))
-        dataset = ImageNetDataset(
-            dataset=dataset, feature_extractor=transform, version=version
-        )
+        dataset = ImageNetDataset(dataset=dataset, feature_extractor=transform, version=version)
 
         # Define evaluation function
         def eval_fn(outputs, labels):
@@ -121,9 +110,7 @@ def xception(
                 pred_labels.extend(torch.argmax(output, axis=-1))
             for label in labels:
                 true_labels.extend(label)
-            eval_score = accuracy_metric.compute(
-                references=true_labels, predictions=pred_labels
-            )
+            eval_score = accuracy_metric.compute(references=true_labels, predictions=pred_labels)
 
             return eval_score["accuracy"]
 
@@ -131,9 +118,7 @@ def xception(
         raise RuntimeError("Unknown task")
 
     # Create DataLoader
-    generator = DataLoader(
-        dataset, batch_size=microbatch, shuffle=False, drop_last=False
-    )
+    generator = DataLoader(dataset, batch_size=microbatch, shuffle=False, drop_last=False)
 
     # Add loss function, if training
     if training and device == "tt":

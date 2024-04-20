@@ -2,22 +2,17 @@
 # SPDX-License-Identifier: Apache-2.0
 
 import os
+
 import torch
-from ...common import (
-    DummyCVDataset,
-    ImageNetDataset,
-    benchmark_model,
-    torch_df_from_str,
-)
 from datasets import load_dataset
 from torch.utils.data import DataLoader
 from torchvision import transforms
 
+from ...common import DummyCVDataset, ImageNetDataset, benchmark_model, torch_df_from_str
+
 
 @benchmark_model(configs=["wide_resnet50_2", "wide_resnet101_2"])
-def wideresnet(
-    training: bool, task: str, config: str, microbatch: int, device: str, data_type: str
-):
+def wideresnet(training: bool, task: str, config: str, microbatch: int, device: str, data_type: str):
     if device == "tt":
         import pybuda
 
@@ -72,9 +67,7 @@ def wideresnet(
                 transforms.Resize(256),
                 transforms.CenterCrop(224),
                 transforms.ToTensor(),
-                transforms.Normalize(
-                    mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225]
-                ),
+                transforms.Normalize(mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225]),
             ]
         )
         # Configure model mode for training or evaluation
@@ -90,18 +83,14 @@ def wideresnet(
             model = model.to(device, dtype=torch_df_from_str(data_type))
 
         # Create random inputs and targets
-        imagenet_dataset = load_dataset(
-            "imagenet-1k", split="validation", use_auth_token=True, streaming=True
-        )
+        imagenet_dataset = load_dataset("imagenet-1k", split="validation", use_auth_token=True, streaming=True)
 
         dataset_iter = iter(imagenet_dataset)
         dataset = []
 
         for _ in range(1000):
             dataset.append(next(dataset_iter))
-        dataset = ImageNetDataset(
-            dataset=dataset, feature_extractor=feature_extractor, version=version
-        )
+        dataset = ImageNetDataset(dataset=dataset, feature_extractor=feature_extractor, version=version)
 
         # Define evaluation function
         def eval_fn(outputs, labels):
@@ -121,9 +110,7 @@ def wideresnet(
             for label in labels:
                 true_labels.extend(label)
 
-            eval_score = accuracy_metric.compute(
-                references=true_labels, predictions=pred_labels
-            )
+            eval_score = accuracy_metric.compute(references=true_labels, predictions=pred_labels)
 
             return eval_score["accuracy"]
 
@@ -131,9 +118,7 @@ def wideresnet(
         raise RuntimeError("Unknown task")
 
     # Create DataLoader
-    generator = DataLoader(
-        dataset, batch_size=microbatch, shuffle=False, drop_last=True
-    )
+    generator = DataLoader(dataset, batch_size=microbatch, shuffle=False, drop_last=True)
 
     # Add loss function, if training
     if training and device == "tt":
