@@ -115,9 +115,9 @@ def generate_model_whisper_enc_dec(variant):
     if pad_model:
         config.max_source_positions = padded_len
     else:
-        os.environ[
-            "PYBUDA_PAD_PARAMETER"
-        ] = f"model.model.encoder.embed_positions.weight, {padded_len}, {config.d_model}"
+        os.environ["PYBUDA_PAD_PARAMETER"] = (
+            f"model.model.encoder.embed_positions.weight, {padded_len}, {config.d_model}"
+        )
 
     max_length = config.max_length
     model = WhisperForConditionalGeneration.from_pretrained(
