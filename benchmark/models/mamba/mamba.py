@@ -110,7 +110,9 @@ def mamba(
     if task == "na":
 
         fixed_size = 1
-        input_ids = model.tokenizer.encode("translate the following sentence from English to German: The house is wonderful.", add_special_tokens=False)
+        input_ids = model.tokenizer.encode(
+            "translate the following sentence from English to German: The house is wonderful.", add_special_tokens=False
+        )
         input_ids.extend([model.tokenizer.pad_token_id] * (fixed_size - len(input_ids)))
         input_ids = input_ids[:fixed_size]
         input_text = model.tokenizer.decode(input_ids)

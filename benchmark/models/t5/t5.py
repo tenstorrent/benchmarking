@@ -120,7 +120,9 @@ def t5(training: bool, task: str, config: str, microbatch: int, device: str, dat
         model.model.config.early_stopping = False
 
         fixed_size = 128
-        input_ids = model.tokenizer.encode("translate the following sentence from English to German: The house is wonderful.", add_special_tokens=False)
+        input_ids = model.tokenizer.encode(
+            "translate the following sentence from English to German: The house is wonderful.", add_special_tokens=False
+        )
         input_ids.extend([model.tokenizer.pad_token_id] * (fixed_size - len(input_ids)))
         input_ids = input_ids[:fixed_size]
         input_text = model.tokenizer.decode(input_ids)

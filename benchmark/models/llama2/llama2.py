@@ -89,7 +89,9 @@ def llama2(
 
             model = model_wrapper
         else:
-            llm_model = AutoModelForCausalLM.from_pretrained(model_name, torch_dtype=torch_df_from_str(data_type), load_in_4bit=load_in_4bit, device_map="auto")
+            llm_model = AutoModelForCausalLM.from_pretrained(
+                model_name, torch_dtype=torch_df_from_str(data_type), load_in_4bit=load_in_4bit, device_map="auto"
+            )
             model = pipeline(
                 "text-generation",
                 model=llm_model,
@@ -116,7 +118,9 @@ def llama2(
     if task == "na":
 
         fixed_size = 128
-        input_ids = model.tokenizer.encode("translate the following sentence from English to German: The house is wonderful.", add_special_tokens=False)
+        input_ids = model.tokenizer.encode(
+            "translate the following sentence from English to German: The house is wonderful.", add_special_tokens=False
+        )
         input_ids.extend([model.tokenizer.pad_token_id] * (fixed_size - len(input_ids)))
         input_ids = input_ids[:fixed_size]
         input_text = model.tokenizer.decode(input_ids)
