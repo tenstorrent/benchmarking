@@ -1,4 +1,4 @@
-# SPDX-FileCopyrightText: © 2023 Tenstorrent Inc.
+# SPDX-FileCopyrightText: © 2024 Tenstorrent AI ULC
 # SPDX-License-Identifier: Apache-2.0
 
 import zipfile
@@ -913,7 +913,7 @@ class BrainSegmentationDataset(Dataset):
 
         # finally get data per image not per patient
         self.data = []
-        for (patient_id, slice_id) in self.patient_slice_index[:n_samples]:
+        for patient_id, slice_id in self.patient_slice_index[:n_samples]:
             v, m = self.volumes[patient_id]
             # fix dimensions (C, H, W)
             image = v[slice_id].transpose(2, 0, 1)

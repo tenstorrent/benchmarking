@@ -77,6 +77,7 @@ def openpose_preprocess(dataset, target_height, target_width):
 
 # ---------------------------------------------------------------------------------------------------------------------
 
+
 # added coco evaluation functions
 def to_coco_json_format_batch(b_coco_keypoints, b_scores, b_image_ids):
     # always use category_id=1 for person
