@@ -27,17 +27,16 @@ def bert(training: bool, task: str, config: str, microbatch: int, device: str, d
             os.environ["PYBUDA_TEMP_ENABLE_NEW_SPARSE_ESTIMATES"] = "1"
             os.environ["PYBUDA_TEMP_SCALE_SPARSE_ESTIMATE_ARGS"] = "1"
             os.environ["PYBUDA_RIBBON2_CALCULATE_TARGET_CYCLES"] = "1"
-            os.environ["PYBUDA_EXP_APPROX"] = "1"
             if data_type == "Bfp8_b":
+                if pybuda.detect_available_devices()[0] != BackendDevice.Grayskull:
+                    os.environ["PYBUDA_FORK_JOIN_BUF_QUEUES"] = "1"
+                os.environ["PYBUDA_EXP_APPROX"] = "1"
                 pybuda.config.configure_mixed_precision(op_type="add", output_df=pybuda.DataFormat.Float16_b)
                 pybuda.config.configure_mixed_precision(op_type="subtract", output_df=pybuda.DataFormat.Float16_b)
                 pybuda.config.configure_mixed_precision(op_type="reciprocal", output_df=pybuda.DataFormat.Float16_b)
-
-        available_devices = pybuda.detect_available_devices()
-        if available_devices[0] == BackendDevice.Grayskull:
-            os.environ["TT_BACKEND_OVERLAY_MAX_EXTRA_BLOB_SIZE"] = f"{18*1024}"
-            if config == "large":
-                pybuda.config.override_op_size("gelu_103", (3, 1))
+            if data_type == "Fp16_b":
+                os.environ["PYBUDA_ENABLE_HOST_INPUT_NOP_BUFFERING"] = "1" #overlay blob issue on bfp8
+                os.environ["PYBUDA_RIBBON2_OPTIMIZATION_ITERATIONS"] = "10"
 
     # Set model parameters based on chosen task and model configuration
     if task == "na":

@@ -28,28 +28,31 @@ def mobilenetv2(training: bool, task: str, config: str, microbatch: int, device:
         # These are about to be enabled by default.
         #
         os.environ["PYBUDA_TEMP_ENABLE_NEW_FUSED_ESTIMATES"] = "1"
-        if data_type != "Bfp8_b":
-            os.environ["PYBUDA_TEMP_ENABLE_NEW_SPARSE_ESTIMATES"] = "1"
-            os.environ["PYBUDA_FORCE_CONV_MULTI_OP_FRACTURE"] = "1"
-            os.environ["PYBUDA_TEMP_SCALE_SPARSE_ESTIMATE_ARGS"] = "1"
-            os.environ["PYBUDA_RIBBON2_CALCULATE_TARGET_CYCLES"] = "1"
+        os.environ["PYBUDA_TEMP_SCALE_SPARSE_ESTIMATE_ARGS"] = "1"
+        os.environ["PYBUDA_RIBBON2_CALCULATE_TARGET_CYCLES"] = "1"
+        os.environ["PYBUDA_TEMP_ENABLE_NEW_SPARSE_ESTIMATES"] = "1"
 
-        if pybuda.detect_available_devices()[0] != BackendDevice.Grayskull:
-            os.environ["PYBUDA_MAXIMIZE_SPARSE_UBLOCK"] = "1"
-            os.environ["PYBUDA_FORK_JOIN_SKIP_EXPANDING_BUFFERS"] = "1"
-            os.environ["PYBUDA_RIBBON2_OPTIMIZATION_ITERATIONS"] = "10"
-            os.environ["PYBUDA_TEMP_ELT_UNARY_ESTIMATES_LEGACY"] = "1"
+        if data_type == "Fp16_b":
+            os.environ["PYBUDA_FORCE_CONV_MULTI_OP_FRACTURE"] = "1"
+            os.environ["PYBUDA_ENABLE_HOST_INPUT_NOP_BUFFERING"] = "1"
 
         if data_type == "Bfp8_b":
             pybuda.config.configure_mixed_precision(name_regex="input.*add.*", output_df=pybuda.DataFormat.Float16_b)
             pybuda.config.configure_mixed_precision(op_type="add", output_df=pybuda.DataFormat.Float16_b)
             pybuda.config.configure_mixed_precision(
-                op_type="depthwise",
-                input_df={
-                    1: (pybuda.DataFormat.Float16_b, False),
-                },
-                output_df=pybuda.DataFormat.Float16_b,
+                op_type="depthwise", 
+                input_df={1: (pybuda.DataFormat.Float16_b, False),}, 
+                output_df=pybuda.DataFormat.Float16_b, 
+                math_fidelity=pybuda.MathFidelity.HiFi2
             )
+            pybuda.config.configure_mixed_precision(op_type="multiply", math_fidelity=pybuda.MathFidelity.HiFi2)
+            pybuda.config.configure_mixed_precision(op_type="matmul", math_fidelity=pybuda.MathFidelity.HiFi2)
+
+        if pybuda.detect_available_devices()[0] != BackendDevice.Grayskull:
+            os.environ["PYBUDA_MAXIMIZE_SPARSE_UBLOCK"] = "1"
+            os.environ["PYBUDA_FORK_JOIN_SKIP_EXPANDING_BUFFERS"] = "1" 
+            os.environ["PYBUDA_RIBBON2_OPTIMIZATION_ITERATIONS"] = "10" 
+            os.environ["PYBUDA_TEMP_ELT_UNARY_ESTIMATES_LEGACY"] = "1"
 
     # Set model parameters based on chosen task and model configuration
     if config == "224":

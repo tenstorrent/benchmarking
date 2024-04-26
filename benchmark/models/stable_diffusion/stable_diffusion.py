@@ -24,6 +24,8 @@ def stable_diffusion(
         compiler_cfg.balancer_policy = "Ribbon"
         os.environ["PYBUDA_RIBBON2"] = "1"
 
+    os.environ["ROUTER_SKIP_RESOURCE_VALIDATION_CHECK"] = "1"
+
     os.environ["TT_BACKEND_OVERLAY_MAX_EXTRA_BLOB_SIZE"] = f"{14*1024}"
     os.environ["PYBUDA_TEMP_ENABLE_NEW_FUSED_ESTIMATES"] = "1"
     os.environ["PYBUDA_TEMP_SCALE_SPARSE_ESTIMATE_ARGS"] = "1"
@@ -32,6 +34,9 @@ def stable_diffusion(
 
     pybuda.config.override_op_size("layernorm_2036.dc.multiply.4", (2, 1))
     pybuda.config.override_op_size("layernorm_2196.dc.multiply.4", (2, 1))
+    pybuda.config.override_op_size("matmul_1878", (2, 1))
+    pybuda.config.override_op_size("matmul_1884", (2, 1))
+    pybuda.config.override_op_size("matmul_1893", (2, 1))
 
     # Set model parameters based on chosen task and model configuration
     if task in ["na", "image_generation"]:

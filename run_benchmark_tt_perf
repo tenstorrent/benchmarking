@@ -14,23 +14,30 @@ echo "Running TT-Model Benchmarking on $TT_DEVICE"
 
 # BERT - Text Classification - SST-2
 if [ "$TT_DEVICE" = "wormhole" ]; then
-    python benchmark.py -d tt -m bert -c large --task text_classification -mb 64 -df Bfp8_b -mf LoFi --loop_count 4 --save_output
+    python benchmark.py -d tt -m bert -c large --task text_classification -mb 64 -df Bfp8_b -mf LoFi --loop_count 128 -opt 4 --save_output
 elif [ "$TT_DEVICE" = "grayskull" ]; then
-    python benchmark.py -d tt -m bert -c large --task text_classification -mb 64 --loop_count 4 --save_output
+    python benchmark.py -d tt -m bert -c large --task text_classification -mb 64 --loop_count 1 -df Bfp8_b -mf LoFi -opt 4 --save_output
 else
     echo "Invalid TT_DEVICE: $TT_DEVICE"
     exit 1
 fi
 
 # ResNet - Image Classification - ImageNet
-python benchmark.py -d tt -m resnet -c resnet50 --task image_classification -mb 64 --loop_count 8 --save_output
+if [ "$TT_DEVICE" = "wormhole" ]; then
+    python benchmark.py -d tt -m resnet -c resnet50 --task image_classification -mb 256 -df Bfp8_b -mf LoFi --loop_count 128 -opt 4 --save_output
+elif [ "$TT_DEVICE" = "grayskull" ]; then
+    python benchmark.py -d tt -m resnet -c resnet50 --task image_classification -mb 64 --loop_count 1 -opt 4 --save_output
+else
+    echo "Invalid TT_DEVICE: $TT_DEVICE"
+    exit 1
+fi
 
 # T5 - Text Summarization - CNN Dailymail
 if [ "$TT_DEVICE" = "wormhole" ]; then
-    python benchmark.py -d tt -m t5_past_cache_enc_dec -c large --task text_summarization -mb 1 --loop_count 1 --save_output
-    python benchmark.py -d tt -m t5 -c large --task text_summarization -mb 1 --loop_count 1 --save_output
+    python benchmark.py -d tt -m t5_past_cache_enc_dec -c large --task text_summarization -mb 1 --loop_count 1 -opt 4 --save_output
+    python benchmark.py -d tt -m t5 -c large --task text_summarization -mb 1 --loop_count 1 -opt 4 --save_output
 elif [ "$TT_DEVICE" = "grayskull" ]; then
-    python benchmark.py -d tt -m t5 -c large --task text_summarization -mb 1 --loop_count 1 --save_output
+    python benchmark.py -d tt -m t5 -c large --task text_summarization -mb 1 --loop_count 1 -opt 4 --save_output
 else
     echo "Invalid TT_DEVICE: $TT_DEVICE"
     exit 1
@@ -38,23 +45,30 @@ fi
 
 # FLAN-T5 - Text Summarization - CNN Dailymail
 if [ "$TT_DEVICE" = "wormhole" ]; then
-    python benchmark.py -d tt -m flant5_past_cache_enc_dec -c large --task text_summarization -mb 1 --loop_count 1 --save_output
-    python benchmark.py -d tt -m flant5 -c large --task text_summarization -mb 1 --loop_count 1 --save_output
+    python benchmark.py -d tt -m flant5_past_cache_enc_dec -c large --task text_summarization -mb 1 --loop_count 1 -opt 4 --save_output
+    python benchmark.py -d tt -m flant5 -c large --task text_summarization -mb 1 --loop_count 1 -opt 4 --save_output
 elif [ "$TT_DEVICE" = "grayskull" ]; then
-    python benchmark.py -d tt -m flant5 -c large --task text_summarization -mb 1 --loop_count 1 --save_output
+    python benchmark.py -d tt -m flant5 -c large --task text_summarization -mb 1 --loop_count 1 -opt 4 --save_output
 else
     echo "Invalid TT_DEVICE: $TT_DEVICE"
     exit 1
 fi
 
 # VoVNet - Image Classification - ImageNet
-python benchmark.py -d tt -m vovnet_v2 -c 39 --task image_classification -mb 64 --loop_count 8 --save_output
+if [ "$TT_DEVICE" = "wormhole" ]; then
+    python benchmark.py -d tt -m vovnet_v2 -c 39 --task image_classification -mb 128 -df Bfp8_b -mf LoFi --loop_count 128 -opt 4 --save_output
+elif [ "$TT_DEVICE" = "grayskull" ]; then
+    python benchmark.py -d tt -m vovnet_v2 -c 39 --task image_classification -mb 64 --loop_count 1 -opt 4 --save_output
+else
+    echo "Invalid TT_DEVICE: $TT_DEVICE"
+    exit 1
+fi
 
 # MobileNetV1 - Image Classification - ImageNet
 if [ "$TT_DEVICE" = "wormhole" ]; then
-    python benchmark.py -d tt -m mobilenetv1 -c 224 --task image_classification -mb 64 -mf HiFi2 --loop_count 8 --save_output
+    python benchmark.py -d tt -m mobilenetv1 -c 224 --task image_classification -mb 128 -df Bfp8_b -mf LoFi --loop_count 128 -opt 4 --save_output
 elif [ "$TT_DEVICE" = "grayskull" ]; then
-    python benchmark.py -d tt -m mobilenetv1 -c 224 --task image_classification -mb 64 -mf HiFi3 --loop_count 8 --save_output
+    python benchmark.py -d tt -m mobilenetv1 -c 224 --task image_classification -mb 64 -mf HiFi3 --loop_count 1 -opt 4 --save_output
 else
     echo "Invalid TT_DEVICE: $TT_DEVICE"
     exit 1
@@ -62,9 +76,9 @@ fi
 
 # MobileNetV2 - Image Classification - ImageNet
 if [ "$TT_DEVICE" = "wormhole" ]; then
-    python benchmark.py -d tt -m mobilenetv2 -c 224 --task image_classification -mb 64 -mf HiFi2 --loop_count 8 --save_output
+    python benchmark.py -d tt -m mobilenetv2 -c 224 --task image_classification -mb 256 -df Bfp8_b -mf LoFi --loop_count 128 -opt 4 --save_output
 elif [ "$TT_DEVICE" = "grayskull" ]; then
-    python benchmark.py -d tt -m mobilenetv2 -c 224 --task image_classification -mb 64 -mf HiFi3 --loop_count 8 --save_output
+    python benchmark.py -d tt -m mobilenetv2 -c 224 --task image_classification -mb 64 -mf HiFi3 --loop_count 1 -opt 4 --save_output
 else
     echo "Invalid TT_DEVICE: $TT_DEVICE"
     exit 1
@@ -72,37 +86,86 @@ fi
 
 # MobileNetV3 - Image Classification - ImageNet
 if [ "$TT_DEVICE" = "wormhole" ]; then
-    python benchmark.py -d tt -m mobilenetv3 -c lg --task image_classification -mb 64 -mf HiFi2 --loop_count 8 --save_output
+    python benchmark.py -d tt -m mobilenetv3 -c lg --task image_classification -mb 64 -mf HiFi2 --loop_count 128 -opt 4 --save_output
 elif [ "$TT_DEVICE" = "grayskull" ]; then
-    python benchmark.py -d tt -m mobilenetv3 -c lg --task image_classification -mb 64 -mf HiFi3 --loop_count 8 --save_output
+    python benchmark.py -d tt -m mobilenetv3 -c lg --task image_classification -mb 64 -mf HiFi3 --loop_count 1 -opt 4 --save_output
 else
     echo "Invalid TT_DEVICE: $TT_DEVICE"
     exit 1
 fi
 
 # HRNet - Image Classification - ImageNet
-python benchmark.py -d tt -m hrnet -c v2_w64 --task image_classification -mb 64 --loop_count 4 --save_output
+if [ "$TT_DEVICE" = "wormhole" ]; then
+    python benchmark.py -d tt -m hrnet -c v2_w64 --task image_classification -mb 128 -df Bfp8_b -mf LoFi --loop_count 128 -opt 4 --save_output
+elif [ "$TT_DEVICE" = "grayskull" ]; then
+    python benchmark.py -d tt -m hrnet -c v2_w64 --task image_classification -mb 64 --loop_count 1 -df Bfp8_b -mf LoFi -opt 4 --save_output
+else
+    echo "Invalid TT_DEVICE: $TT_DEVICE"
+    exit 1
+fi
 
 # ViT - Image Classification - ImageNet
-python benchmark.py -d tt -m vit -c base --task image_classification -mb 64 -mf HiFi2 --loop_count 4 --save_output
+if [ "$TT_DEVICE" = "wormhole" ]; then
+    python benchmark.py -d tt -m vit -c base --task image_classification -mb 256 -df Bfp8_b -mf LoFi --loop_count 128 -opt 4 --save_output
+elif [ "$TT_DEVICE" = "grayskull" ]; then
+    python benchmark.py -d tt -m vit -c base --task image_classification -mb 64 --loop_count 1 -df Bfp8_b -mf LoFi -opt 4 --save_output
+else
+    echo "Invalid TT_DEVICE: $TT_DEVICE"
+    exit 1
+fi
 
 # DeiT - Image Classification - ImageNet
-python benchmark.py -d tt -m deit -c base --task image_classification -mb 64 -mf HiFi2 --loop_count 4 --save_output
+if [ "$TT_DEVICE" = "wormhole" ]; then
+    python benchmark.py -d tt -m deit -c base --task image_classification -mb 256 -df Bfp8_b -mf LoFi --loop_count 128 -opt 4 --save_output
+elif [ "$TT_DEVICE" = "grayskull" ]; then
+    python benchmark.py -d tt -m deit -c base --task image_classification -mb 64 --loop_count 1 -df Bfp8_b -mf LoFi -opt 4 --save_output
+else
+    echo "Invalid TT_DEVICE: $TT_DEVICE"
+    exit 1
+fi
 
 # YOLOv5 - Object Detecton - COCO
-python benchmark.py -d tt -m yolo_v5 -c s --task object_detection -mb 64 --loop_count 1 --save_output
+if [ "$TT_DEVICE" = "wormhole" ]; then
+    python benchmark.py -d tt -m yolo_v5 -c s --task object_detection -mb 128 --loop_count 1 -opt 4 --save_output
+elif [ "$TT_DEVICE" = "grayskull" ]; then
+    python benchmark.py -d tt -m yolo_v5 -c s --task object_detection -mb 64 --loop_count 1 -opt 4 --save_output
+else
+    echo "Invalid TT_DEVICE: $TT_DEVICE"
+    exit 1
+fi
 
 # OpenPose - Pose Estimation - COCO keypoints
-python benchmark.py -d tt -m open_pose -c 2d --task pose_estimation -mb 64 -df Fp16 --loop_count 4 --save_output
+if [ "$TT_DEVICE" = "wormhole" ]; then
+    python benchmark.py -d tt -m open_pose -c 2d --task pose_estimation -mb 64 -df Fp16 --loop_count 32 -opt 4 --save_output
+elif [ "$TT_DEVICE" = "grayskull" ]; then
+    python benchmark.py -d tt -m open_pose -c 2d --task pose_estimation -mb 64 -df Fp16 --loop_count 1 -opt 4 --save_output
+else
+    echo "Invalid TT_DEVICE: $TT_DEVICE"
+    exit 1
+fi
 
 # U-Net - Segmentation - Brain LGG Dataset
-python benchmark.py -d tt -m unet -c 256 --task segmentation -mb 48 --loop_count 32 --save_output
+if [ "$TT_DEVICE" = "wormhole" ]; then
+    python benchmark.py -d tt -m unet -c 256 --task segmentation -mb 128 -df Bfp8_b -mf LoFi --loop_count 32 -opt 4 --save_output
+elif [ "$TT_DEVICE" = "grayskull" ]; then
+    python benchmark.py -d tt -m unet -c 256 --task segmentation -mb 64 --loop_count 1 -opt 4 --save_output
+else
+    echo "Invalid TT_DEVICE: $TT_DEVICE"
+    exit 1
+fi
 
 # Inception-v4 - Image Classification - ImageNet
-python benchmark.py -d tt -m inception_v4 -c 224 --task image_classification -mb 64 --loop_count 8 --save_output
+if [ "$TT_DEVICE" = "wormhole" ]; then
+    python benchmark.py -d tt -m inception_v4 -c 224 --task image_classification -mb 128 -df Bfp8_b -mf LoFi --loop_count 128 -opt 4 --save_output
+elif [ "$TT_DEVICE" = "grayskull" ]; then
+    python benchmark.py -d tt -m inception_v4 -c 224 --task image_classification -mb 64 --loop_count 1 -opt 4 --save_output
+else
+    echo "Invalid TT_DEVICE: $TT_DEVICE"
+    exit 1
+fi
 
 # Whisper - ASR - LibriSpeech
-python benchmark.py -d tt -m whisper_enc_dec -c small --task asr -mb 1 --loop_count 1 --save_output
+python benchmark.py -d tt -m whisper_enc_dec -c small --task asr -mb 1 --loop_count 1 -opt 4 --save_output
 
 # Falcon - Text Generation - HellaSwag
 if [ "$TT_DEVICE" = "wormhole" ]; then
