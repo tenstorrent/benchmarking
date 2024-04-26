@@ -22,6 +22,21 @@ def falcon(
     training: bool, task: str, config: str, microbatch: int, device: str, data_type: str, benchmark_run: BenchmarkRun
 ):
 
+    import os
+    import pybuda
+    compiler_cfg = pybuda.config._get_global_compiler_config()
+
+    if compiler_cfg.balancer_policy == "default":
+        compiler_cfg.balancer_policy = "Ribbon"
+        os.environ["PYBUDA_RIBBON2"] = "1"
+
+    os.environ["PYBUDA_TEMP_ENABLE_NEW_FUSED_ESTIMATES"] = "1"
+    os.environ["PYBUDA_TEMP_SCALE_SPARSE_ESTIMATE_ARGS"] = "1"
+    os.environ["PYBUDA_RIBBON2_CALCULATE_TARGET_CYCLES"] = "1"
+    os.environ["PYBUDA_TEMP_ENABLE_NEW_SPARSE_ESTIMATES"] = "1"
+    os.environ["PYBUDA_EXP_APPROX"] = "1"
+    os.environ["TT_BACKEND_OVERLAY_MAX_EXTRA_BLOB_SIZE"] = "233472"
+
     # Set model parameters based on chosen task and model configuration
     if task in ["na", "hellaswag", "text_summarization", "alpacaeval"]:
         if config == "7b":
