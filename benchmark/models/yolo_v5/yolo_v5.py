@@ -26,6 +26,7 @@ def yolo_v5(training: bool, task: str, config: str, microbatch: int, device: str
             os.environ["PYBUDA_RIBBON2"] = "1"
 
         from pybuda._C.backend_api import BackendDevice
+
         available_devices = pybuda.detect_available_devices()
         if available_devices[0] == BackendDevice.Wormhole_B0:
             os.environ["PYBUDA_SUPRESS_T_FACTOR_MM"] = "49"

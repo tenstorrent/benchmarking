@@ -40,7 +40,7 @@ def hrnet(training: bool, task: str, config: str, microbatch: int, device: str, 
             compiler_cfg.balancer_policy = "Ribbon"
             os.environ["PYBUDA_RIBBON2"] = "1"
 
-        os.environ["PYBUDA_SUPRESS_T_FACTOR_MM"] = "46" # removing causes hang #2139
+        os.environ["PYBUDA_SUPRESS_T_FACTOR_MM"] = "46"  # removing causes hang #2139
         os.environ["PYBUDA_ENABLE_HOST_INPUT_NOP_BUFFERING"] = "1"
 
         # These are about to be enabled by default.
@@ -85,7 +85,7 @@ def hrnet(training: bool, task: str, config: str, microbatch: int, device: str, 
         available_devices = pybuda.detect_available_devices()
         if available_devices:
             if available_devices[0] == BackendDevice.Grayskull:
-                pybuda.config._internal_insert_fj_buffering_nop('add_312', ['add_341'], nop_count=2)
+                pybuda.config._internal_insert_fj_buffering_nop("add_312", ["add_341"], nop_count=2)
     else:
         raise RuntimeError("Unknown config")
 

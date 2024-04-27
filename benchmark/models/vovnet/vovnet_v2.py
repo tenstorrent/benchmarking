@@ -26,7 +26,7 @@ def vovnet_v2(training: bool, task: str, config: str, microbatch: int, device: s
 
         if compiler_cfg.balancer_policy == "default":
             compiler_cfg.balancer_policy = "Ribbon"
-            os.environ["PYBUDA_RIBBON2"] = "1" 
+            os.environ["PYBUDA_RIBBON2"] = "1"
 
         if pybuda.detect_available_devices()[0] != BackendDevice.Grayskull:
             os.environ["PYBUDA_DISABLE_EXPLICIT_DRAM_IO"] = "1"

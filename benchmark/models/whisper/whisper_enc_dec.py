@@ -191,7 +191,7 @@ def whisper_enc_dec(training: bool, task: str, config: str, microbatch: int, dev
         "verify_cfg": pybuda.verify.VerifyConfig(
             verify_pybuda_codegen_vs_framework=True,
             enabled=False,
-        )
+        ),
     }
 
     # Task specific configuration

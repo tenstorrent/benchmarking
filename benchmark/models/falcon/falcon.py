@@ -23,7 +23,9 @@ def falcon(
 ):
 
     import os
+
     import pybuda
+
     compiler_cfg = pybuda.config._get_global_compiler_config()
 
     if compiler_cfg.balancer_policy == "default":

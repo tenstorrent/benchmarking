@@ -82,7 +82,6 @@ def print_benchmark_envs():
             print(f"{key}={value}")
 
 
-
 def run(
     args,
     model: Any,

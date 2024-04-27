@@ -65,7 +65,7 @@ def t5_past_cache_enc_dec(training: bool, task: str, config: str, microbatch: in
         # ---------------------------------------------------------------------------------------- #
         # T5, START
         # ---------------------------------------------------------------------------------------- #
-        
+
         compiler_cfg = pybuda.config._get_global_compiler_config()
 
         # Compiler configurations
@@ -84,7 +84,6 @@ def t5_past_cache_enc_dec(training: bool, task: str, config: str, microbatch: in
         # ---------------------------------------------------------------------------------------- #
         # T5, END
         # ---------------------------------------------------------------------------------------- #
-
 
         # ---------------------------------------------------------------------------------------- #
         # Generate T5 past cache encoder-decoder, START

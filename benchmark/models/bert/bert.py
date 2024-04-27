@@ -35,7 +35,7 @@ def bert(training: bool, task: str, config: str, microbatch: int, device: str, d
                 pybuda.config.configure_mixed_precision(op_type="subtract", output_df=pybuda.DataFormat.Float16_b)
                 pybuda.config.configure_mixed_precision(op_type="reciprocal", output_df=pybuda.DataFormat.Float16_b)
             if data_type == "Fp16_b":
-                os.environ["PYBUDA_ENABLE_HOST_INPUT_NOP_BUFFERING"] = "1" #overlay blob issue on bfp8
+                os.environ["PYBUDA_ENABLE_HOST_INPUT_NOP_BUFFERING"] = "1"  # overlay blob issue on bfp8
                 os.environ["PYBUDA_RIBBON2_OPTIMIZATION_ITERATIONS"] = "10"
 
     # Set model parameters based on chosen task and model configuration

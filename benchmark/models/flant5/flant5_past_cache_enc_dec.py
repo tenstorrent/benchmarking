@@ -64,7 +64,7 @@ def flant5_past_cache_enc_dec(training: bool, task: str, config: str, microbatch
         # ---------------------------------------------------------------------------------------- #
         # flan-T5, START
         # ---------------------------------------------------------------------------------------- #
-        
+
         compiler_cfg = pybuda.config._get_global_compiler_config()
 
         if compiler_cfg.balancer_policy == "default":
@@ -83,7 +83,6 @@ def flant5_past_cache_enc_dec(training: bool, task: str, config: str, microbatch
         # flan-T5, END
         # ---------------------------------------------------------------------------------------- #
 
-
         # ---------------------------------------------------------------------------------------- #
         # Generate T5 past cache encoder-decoder, START
         # ---------------------------------------------------------------------------------------- #
@@ -95,7 +94,7 @@ def flant5_past_cache_enc_dec(training: bool, task: str, config: str, microbatch
         os.environ["TT_BACKEND_DRAM_POLLING_FREQUENCY"] = "64"
         os.environ["TT_BACKEND_EPOCH_BIN_NUM_SLOTS"] = "64"
         os.environ["PYBUDA_ROTATE_PAST_CACHE_PARAMS"] = "1"
-        
+
         # Compiler configurations
         compiler_cfg = pybuda.config._get_global_compiler_config()
         compiler_cfg.enable_tvm_cpu_fallback = False
