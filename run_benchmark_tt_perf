@@ -146,7 +146,7 @@ fi
 
 # U-Net - Segmentation - Brain LGG Dataset
 if [ "$TT_DEVICE" = "wormhole" ]; then
-    python benchmark.py -d tt -m unet -c 256 --task segmentation -mb 128 -df Bfp8_b -mf LoFi --loop_count 32 -opt 4 --save_output
+    python benchmark.py -d tt -m unet -c 256 --task segmentation -mb 64 -df Bfp8_b -mf LoFi --loop_count 8 -opt 4 --save_output
 elif [ "$TT_DEVICE" = "grayskull" ]; then
     python benchmark.py -d tt -m unet -c 256 --task segmentation -mb 64 --loop_count 1 -opt 4 --save_output
 else
