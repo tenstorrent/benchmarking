@@ -58,6 +58,15 @@ def hrnet(training: bool, task: str, config: str, microbatch: int, device: str, 
         if compiler_cfg.balancer_policy == "Ribbon":
             compiler_cfg.enable_amp_light()
 
+        if config == "v2_w64":
+            if data_type == "Bfp8_b":
+                if "TT_BACKEND_OVERLAY_MAX_EXTRA_BLOB_SIZE" not in os.environ:
+                    os.environ["TT_BACKEND_OVERLAY_MAX_EXTRA_BLOB_SIZE"] = f"{10*1024}"
+            available_devices = pybuda.detect_available_devices()
+            if available_devices:
+                if available_devices[0] == BackendDevice.Grayskull:
+                    pybuda.config._internal_insert_fj_buffering_nop("add_312", ["add_341"], nop_count=2)
+
     # Set model parameters based on chosen task and model configuration
     img_res = 224
     target_microbatch = 32
@@ -78,14 +87,6 @@ def hrnet(training: bool, task: str, config: str, microbatch: int, device: str, 
         model_name = "hrnetv2_w48"
     elif config == "v2_w64":
         model_name = "hrnetv2_w64"
-        model_name = "hrnetv2_w64"
-        if data_type == "Bfp8_b":
-            if "TT_BACKEND_OVERLAY_MAX_EXTRA_BLOB_SIZE" not in os.environ:
-                os.environ["TT_BACKEND_OVERLAY_MAX_EXTRA_BLOB_SIZE"] = f"{10*1024}"
-        available_devices = pybuda.detect_available_devices()
-        if available_devices:
-            if available_devices[0] == BackendDevice.Grayskull:
-                pybuda.config._internal_insert_fj_buffering_nop("add_312", ["add_341"], nop_count=2)
     else:
         raise RuntimeError("Unknown config")
 
