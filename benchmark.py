@@ -118,7 +118,7 @@ def run(
 
         # Override push timeout on slow runs
         os.environ["TT_BACKEND_PUSH_TIMEOUT"] = "600"
-        os.environ["TT_BACKEND_TIMEOUT"] = "1200"
+        os.environ["TT_BACKEND_TIMEOUT"] = "12000"
 
         # TODO: For silicon device runs, it seems that the `tt` from user-side is not
         # the one being used with api calls like pybuda.run_forward(..). We'll fetch
@@ -480,6 +480,11 @@ if __name__ == "__main__":
         action="store_true",
         help="Store samples and model output per sample in text file for debugging.",
     )
+    parser.add_argument(
+        '--perf_analysis', 
+        action='store_true', 
+        help='Enable backend perf analyzer and op estimates in compiler'
+    )
     args = parser.parse_args()
 
     # Get all available models
@@ -534,6 +539,12 @@ if __name__ == "__main__":
             else:
                 name, value = e.split("=")
             os.environ[name] = value
+            
+    if args.perf_analysis:
+        if "PYBUDA_OP_PERF" not in os.environ:
+            os.environ["PYBUDA_OP_PERF"] = "1"
+        if "TT_BACKEND_PERF_ANALYZER" not in os.environ:
+            os.environ["TT_BACKEND_PERF_ANALYZER"] = "1"
 
     # Load model and run benchmark
     kwargs = {
