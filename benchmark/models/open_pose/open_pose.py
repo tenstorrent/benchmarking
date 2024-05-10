@@ -29,15 +29,15 @@ def open_pose(training: bool, task: str, config: str, microbatch: int, device: s
             os.environ["PYBUDA_RIBBON2"] = "1"
 
         os.environ["PYBUDA_SUPRESS_T_FACTOR_MM"] = "13"
+        os.environ["PYBUDA_ENABLE_HOST_INPUT_NOP_BUFFERING"] = "1"
 
         # These are about to be enabled by default.
         #
-        if data_type != "Bfp8_b":
-            os.environ["PYBUDA_TEMP_ENABLE_NEW_SPARSE_ESTIMATES"] = "1"
-        else:
-            os.environ["PYBUDA_LEGACY_KERNEL_BROADCAST"] = "1"
-
+        os.environ["PYBUDA_TEMP_SCALE_SPARSE_ESTIMATE_ARGS"] = "1"
         os.environ["PYBUDA_TEMP_ENABLE_NEW_FUSED_ESTIMATES"] = "1"
+        os.environ["PYBUDA_TEMP_ENABLE_NEW_SPARSE_ESTIMATES"] = "1"
+
+        os.environ["PYBUDA_DISABLE_DYNAMIC_DRAM"] = "1"
 
     # Set model parameters based on chosen task and model configuration
     model_name = ""

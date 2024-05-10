@@ -23,12 +23,20 @@ def whisper_enc_dec(training: bool, task: str, config: str, microbatch: int, dev
     compiler_cfg = pybuda.config._get_global_compiler_config()
 
     if compiler_cfg.balancer_policy == "default":
-        compiler_cfg.balancer_policy = "NLP"
-
-    if pybuda.detect_available_devices()[0] == BackendDevice.Grayskull:
-        compiler_cfg.enable_auto_fusing = False
         compiler_cfg.balancer_policy = "Ribbon"
         os.environ["PYBUDA_RIBBON2"] = "1"
+
+    # These are about to be enabled by default.
+    #
+    os.environ["PYBUDA_TEMP_SCALE_SPARSE_ESTIMATE_ARGS"] = "1"
+    os.environ["PYBUDA_TEMP_ENABLE_NEW_FUSED_ESTIMATES"] = "1"
+    os.environ["PYBUDA_TEMP_ENABLE_NEW_SPARSE_ESTIMATES"] = "1"
+
+    # Determine model variant
+    if config == "small":
+        variant = "openai/whisper-small"
+    else:
+        raise RuntimeError("Unknown config")
 
     # Set model parameters based on chosen task and model configuration
     if task == "na" or task == "asr":
@@ -180,6 +188,10 @@ def whisper_enc_dec(training: bool, task: str, config: str, microbatch: int, dev
         "forward_wrapper": forward_wrapper,
         "compile_inputs": other["compile_inputs"],
         "tokenizer": processor.tokenizer,
+        "verify_cfg": pybuda.verify.VerifyConfig(
+            verify_pybuda_codegen_vs_framework=True,
+            enabled=False,
+        ),
     }
 
     # Task specific configuration
