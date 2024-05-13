@@ -126,9 +126,9 @@ fi
 
 # YOLOv5 - Object Detecton - COCO
 if [ "$TT_DEVICE" = "wormhole" ]; then
-    python benchmark.py -d tt -m yolo_v5 -c s --task object_detection -mb 128 --loop_count 1 -opt 4 --save_output
+    python benchmark.py -d tt -m yolo_v5 -c s --task object_detection -mb 128 --loop_count 128 -opt 4 --save_output
 elif [ "$TT_DEVICE" = "grayskull" ]; then
-    python benchmark.py -d tt -m yolo_v5 -c s --task object_detection -mb 64 --loop_count 1 -opt 4 --save_output
+    python benchmark.py -d tt -m yolo_v5 -c s --task object_detection -mb 64 --loop_count 32 -opt 4 --save_output
 else
     echo "Invalid TT_DEVICE: $TT_DEVICE"
     exit 1
@@ -136,7 +136,7 @@ fi
 
 # OpenPose - Pose Estimation - COCO keypoints
 if [ "$TT_DEVICE" = "wormhole" ]; then
-    python benchmark.py -d tt -m open_pose -c 2d --task pose_estimation -mb 64 -df Fp16 --loop_count 32 -opt 4 --save_output
+    python benchmark.py -d tt -m open_pose -c 2d --task pose_estimation -mb 64 -df Fp16 --loop_count 128 -opt 4 --save_output
 elif [ "$TT_DEVICE" = "grayskull" ]; then
     python benchmark.py -d tt -m open_pose -c 2d --task pose_estimation -mb 64 -df Fp16 --loop_count 32 -opt 4 --save_output
 else
@@ -146,9 +146,9 @@ fi
 
 # U-Net - Segmentation - Brain LGG Dataset
 if [ "$TT_DEVICE" = "wormhole" ]; then
-    python benchmark.py -d tt -m unet -c 256 --task segmentation -mb 64 -df Bfp8_b -mf LoFi --loop_count 8 -opt 4 --save_output
+    python benchmark.py -d tt -m unet -c 256 --task segmentation -mb 64 -df Bfp8_b -mf LoFi --loop_count 128 -opt 4 --save_output
 elif [ "$TT_DEVICE" = "grayskull" ]; then
-    python benchmark.py -d tt -m unet -c 256 --task segmentation -mb 64 --loop_count 8 -opt 4 --save_output
+    python benchmark.py -d tt -m unet -c 256 --task segmentation -mb 64 --loop_count 32 -opt 4 --save_output
 else
     echo "Invalid TT_DEVICE: $TT_DEVICE"
     exit 1
