@@ -215,7 +215,7 @@ def run(
             if not benchmark_run.has_forward_wrapper:
                 # Prepare a thread pushing inputs
                 def push_inputs_thread():
-                    for _ in range(args.loop_count):
+                    for loop in range(args.loop_count):
                         for batch, labels in input_data:
                             if pybuda.error_raised():
                                 print(" * Aborting input thread due to error")
@@ -224,7 +224,8 @@ def run(
                                 device.push_to_inputs(list(batch.values()))
                             else:
                                 device.push_to_inputs(batch)
-                            store_labels.append(labels)
+                            if loop == 0:
+                                store_labels.append(labels)
 
                 input_thread = threading.Thread(target=push_inputs_thread)
 
@@ -238,7 +239,8 @@ def run(
                             precision=4,
                             sci_mode=False,
                         )
-                    for i in range(args.loop_count * len(generator)):
+                    number_of_samples = len(generator)
+                    for i in range(args.loop_count * number_of_samples):
                         while True:
                             try:
                                 output = output_q.get()
@@ -260,7 +262,8 @@ def run(
                                         ) as f:
                                             pickle.dump(intermed, f)
 
-                                store_outputs.append(output)
+                                if i < number_of_samples:
+                                    store_outputs.append(output)
                                 break  # got data, break out of forever loop
                             except queue.Empty:
                                 if pybuda.error_raised():
@@ -292,15 +295,16 @@ def run(
     if args.device == "tt" and isinstance(model, dict):
         benchmark_run.start_benchmark_timer()
         if benchmark_run.has_forward_wrapper:
-            for _ in range(args.loop_count):
+            for loop in range(args.loop_count):
                 for batch, labels in input_data:
-                    store_labels.append(labels)
                     output = model["forward_wrapper"](
                         batch=batch,
                         output_q=output_q,
                         device=device,
                     )
-                    store_outputs.append(output)
+                    if loop == 0:
+                        store_labels.append(labels)
+                        store_outputs.append(output)
         else:
             pybuda.run_forward(input_count=(args.loop_count * len(generator)))
             input_thread.join()
@@ -326,9 +330,8 @@ def run(
         # cuda, CPU, or TT device with pybuda_pipeline implementations
         benchmark_run.start_benchmark_timer()
         with torch.inference_mode():
-            for _ in range(args.loop_count):
+            for loop in range(args.loop_count):
                 for batch, labels in input_data:
-                    store_labels.append(labels)
                     if isinstance(batch, dict) or isinstance(batch, transformers.tokenization_utils_base.BatchEncoding):
                         batch = BatchEncoding(batch).to(args.device)
                         output = model(**batch)
@@ -346,7 +349,9 @@ def run(
                             )
                         else:
                             output = model(batch)
-                    store_outputs.append(output)
+                    if loop == 0:
+                        store_labels.append(labels)
+                        store_outputs.append(output)
         benchmark_run.end_benchmark_timer()
 
     # Store model output
