@@ -157,6 +157,14 @@ def run(
         elif args.save_tti or args.load_tti:
             raise Exception(f"{args.model} currently cannot be compiled to TTI.")
 
+        # Enable perf analysis, if selected
+        if args.perf_analysis:
+            args.loop_count = 1
+            if "PYBUDA_OP_PERF" not in os.environ:
+                os.environ["PYBUDA_OP_PERF"] = "1"
+            if "TT_BACKEND_PERF_ANALYZER" not in os.environ:
+                os.environ["TT_BACKEND_PERF_ANALYZER"] = "1"
+
         # Set PyBUDA configurations
         pybuda.set_configuration_options(
             math_fidelity=mf_from_str(args.math_fidelity),
@@ -478,6 +486,9 @@ if __name__ == "__main__":
         "--save_tti",
         type=str,
         help="Save compilation for TTDevice into a TTI-archive configured for silicon to file and exit program. (specify path to save to).",
+    )
+    parser.add_argument(
+        "--perf_analysis", action="store_true", help="Enable backend perf analyzer and op estimates in compiler"
     )
     parser.add_argument(
         "--model_output",
