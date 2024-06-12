@@ -30,9 +30,6 @@ pip install -r requirements-cuda.txt
 
 ### Environment Setup
 
-
-
-
 #### Setup Access to HuggingFace Hub
 
 To access the benchmarking datasets, follow these steps to set up your access to the HuggingFace Hub:
@@ -45,22 +42,27 @@ To access the benchmarking datasets, follow these steps to set up your access to
 
 3. **Install `huggingface_hub` Library**:
    - Install the `huggingface_hub` library by running:
+
      ```bash
      pip install huggingface_hub
      ```
 
 4. **Login to HuggingFace CLI**:
    - Login to the HuggingFace CLI using your User Access Token:
+
      ```bash
      huggingface-cli login
      ```
+
    - Enter your User Access Token when prompted.
 
 5. **Validate Setup**:
    - Run the following command to verify your login status:
+
      ```bash
      huggingface-cli whoami
      ```
+
    - If your username is displayed, it means you are successfully logged in.
 
 6. **Dataset Access**:
@@ -72,9 +74,11 @@ After completing the setup process, ensure that everything is working correctly:
 
 1. **Verify Hugging Face Hub Login**:
    - Run the following command to verify that you are logged in to the Hugging Face Hub:
+
      ```bash
      huggingface-cli whoami
      ```
+
    - If your username is displayed, it means you are successfully logged in.
 
 2. **Check Dataset Access**:
@@ -84,9 +88,7 @@ After completing the setup process, ensure that everything is working correctly:
 3. **Accept Dataset Access (If Required)**:
    - If you encounter any permission errors while accessing the ImageNet-1k dataset, ensure that you follow the instructions provided on the dataset page to grant access.
 
-
 ### Benchmarking Datasets Setup
-
 
 To set up the three required datasets for running benchmarking tests within this repository, follow these steps for each dataset:
 
@@ -94,48 +96,48 @@ To set up the three required datasets for running benchmarking tests within this
 
 2. **COCO Dataset**: You can automatically download the COCO dataset from [here](https://cocodataset.org/#download:~:text=2017%20Val%20images%20%5B5K/1GB%5D). No login is required, and the dataset will be cached in `~/.cache/coco`.
 
-To download the COCO dataset, follow these steps:
+   To download the COCO dataset, follow these steps:
 
-```bash
-# use another location for MLDATA_DIR if desired, below is default
-# Create the `coco` directory inside the cache directory:
-mkdir -p ~/.cache/mldata/coco
+   ```bash
+   # use another location for MLDATA_DIR if desired, below is default
+   # Create the `coco` directory inside the cache directory:
+   mkdir -p ~/.cache/mldata/coco
 
-# Navigate to the `coco` directory:
-cd ~/.cache/mldata/coco
+   # Navigate to the `coco` directory:
+   cd ~/.cache/mldata/coco
 
-# Create the `images` directory:
-mkdir images
-cd images
+   # Create the `images` directory:
+   mkdir images
+   cd images
 
-# Download the COCO validation images:
-wget http://images.cocodataset.org/zips/val2017.zip
+   # Download the COCO validation images:
+   wget http://images.cocodataset.org/zips/val2017.zip
 
-# Unzip the downloaded file:
-unzip val2017.zip
+   # Unzip the downloaded file:
+   unzip val2017.zip
 
-# Move back to the `coco` directory:
-cd ..
+   # Move back to the `coco` directory:
+   cd ..
 
-# Download the COCO train/val annotations:
-wget http://images.cocodataset.org/annotations/annotations_trainval2017.zip
+   # Download the COCO train/val annotations:
+   wget http://images.cocodataset.org/annotations/annotations_trainval2017.zip
 
-# Unzip the downloaded file:
-unzip annotations_trainval2017.zip
-```
+   # Unzip the downloaded file:
+   unzip annotations_trainval2017.zip
+   ```
 
-3. *LGG Segmentation Dataset*: must be manually downloaded from <https://www.kaggle.com/datasets/mateuszbuda/lgg-mri-segmentation>, this requires a Kaggle login. The commands below are to extract the downloaded archive into the correct location: `~/.cache/mldata/lgg_segmentation/kaggle_3m`.
+3. **LGG Segmentation Dataset**: must be manually downloaded from <https://www.kaggle.com/datasets/mateuszbuda/lgg-mri-segmentation>, this requires a Kaggle login. The commands below are to extract the downloaded archive into the correct location: `~/.cache/mldata/lgg_segmentation/kaggle_3m`.
 
-```bash
-# use another location for MLDATA_DIR if desired, below is default;
-# Download and move the downloaded archive and unzip within the llgg_segmentation folder.
-mkdir -p ~/.cache/mldata/lgg_segmentation
-cd ~/.cache/mldata/lgg_segmentation
-# download and move the archive here then unzip
-unzip archive.zip
-# the dataset appears to have two copies that are equivalent, remove the extra one
-rm -r lgg-mri-segmentation
-```
+   ```bash
+   # use another location for MLDATA_DIR if desired, below is default;
+   # Download and move the downloaded archive and unzip within the llgg_segmentation folder.
+   mkdir -p ~/.cache/mldata/lgg_segmentation
+   cd ~/.cache/mldata/lgg_segmentation
+   # download and move the archive here then unzip
+   unzip archive.zip
+   # the dataset appears to have two copies that are equivalent, remove the extra one
+   rm -r lgg-mri-segmentation
+   ```
 
 ## Run Benchmarking
 
