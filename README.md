@@ -12,18 +12,18 @@ Repository for AI model benchmarking on accelerator hardware.
 | [Whisper-Small](./benchmark/models/whisper) (tok/s)        | 30s                 | 1          | 4                           | 4                       | 40            |
 | [Falcon-7B](./benchmark/models/falcon) (tok/s)             | 128                 | 32         | x                           | x                       | 74            |
 | [SD v1-4](./benchmark/models/stable_diffusion) (s/img)     | 512x512             | 1          | x                           | x                       | 50            |
-| [ResNet50](./benchmark/models/resnet) (img/s)              | 3x224x224           | 256        |                             | 1695                    | 2688          |
-| [VoVNet-V2](./benchmark/models/vovnet) (img/s)             | 3x224x224           | 128        |                             | 798                     | 1402          |
-| [MobileNetV1](./benchmark/models/mobilenetv1) (img/s)      | 3x224x224           | 128        |                             | 2823                    | 2765          |
-| [MobileNetV2](./benchmark/models/mobilenetv2) (img/s)      | 3x224x224           | 256        |                             | 1403                    | 2004          |
+| [ResNet50](./benchmark/models/resnet) (img/s)              | 3x224x224           | 256        | 1258                        | 1695                    | 2688          |
+| [VoVNet-V2](./benchmark/models/vovnet) (img/s)             | 3x224x224           | 128        | 689                         | 798                     | 1402          |
+| [MobileNetV1](./benchmark/models/mobilenetv1) (img/s)      | 3x224x224           | 128        | 2411                        | 2823                    | 2765          |
+| [MobileNetV2](./benchmark/models/mobilenetv2) (img/s)      | 3x224x224           | 256        | 1271                        | 1403                    | 2004          |
 | [MobileNetV3](./benchmark/models/mobilenetv3) (img/s)      | 3x224x224           | 64         | 1432                        | 1568                    | 1774          |
-| [HRNet-V2](./benchmark/models/hrnet) (img/s)               | 3x224x224           | 128        |                             | 275                     | 283           |
+| [HRNet-V2](./benchmark/models/hrnet) (img/s)               | 3x224x224           | 128        | 236                         | 275                     | 283           |
 | [ViT-Base](./benchmark/models/vit) (img/s)                 | 3x224x224           | 64         | 293                         | 421                     | 510           |
 | [DeiT-Base](./benchmark/models/deit) (img/s)               | 3x224x224           | 64         | 293                         | 303                     | 510           |
-| [YOLOv5-Small](./benchmark/models/yolo_v5) (img/s)         | 3x320x320           | 128        |                             | 217                     | 1035          |
+| [YOLOv5-Small](./benchmark/models/yolo_v5) (img/s)         | 3x320x320           | 128        | 225                         | 236                     | 1035          |
 | [OpenPose-2D](./benchmark/models/openpose) (img/s)         | 3x224x224           | 64         | 960                         | 1334                    | 1127          |
 | [U-Net](./benchmark/models/unet) (img/s)                   | 3x256x256           | 48         | 254                         | 276                     | 464           |
-| [Inception-v4](./benchmark/models/inception_v4) (img/s)    | 3x224x224           | 128        |                             | 425                     | 931           |
+| [Inception-v4](./benchmark/models/inception_v4) (img/s)    | 3x224x224           | 128        | 358                         | 425                     | 931           |
 
 ## Setup Instructions
 
