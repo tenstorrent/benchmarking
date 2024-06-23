@@ -27,23 +27,26 @@ def mobilenetv3(training: bool, task: str, config: str, microbatch: int, device:
 
         if compiler_cfg.balancer_policy == "default":
             compiler_cfg.balancer_policy = "Ribbon"
-            os.environ["PYBUDA_RIBBON2"] = "1"
+
+        if data_type == "Fp16_b" and pybuda.detect_available_devices()[0] == BackendDevice.Wormhole_B0:
+            os.environ["PYBUDA_ENABLE_DRAM_IO_BUFFER_SCALING"] = "1"
+            os.environ["PYBUDA_ENABLE_INPUT_BUFFER_SCALING_FOR_NOC_READERS"] = "1"
 
         os.environ["PYBUDA_FORCE_CONV_MULTI_OP_FRACTURE"] = "1"
         os.environ["PYBUDA_BALANCER_PREPASS_DISABLED"] = "1"
         os.environ["PYBUDA_ENABLE_HOST_INPUT_NOP_BUFFERING"] = "1"
 
-        # These are about to be enabled by default.
-        #
-        os.environ["PYBUDA_TEMP_ENABLE_NEW_FUSED_ESTIMATES"] = "1"
-        os.environ["PYBUDA_TEMP_ENABLE_NEW_SPARSE_ESTIMATES"] = "1"
-        os.environ["PYBUDA_TEMP_SCALE_SPARSE_ESTIMATE_ARGS"] = "1"
-        os.environ["PYBUDA_RIBBON2_CONSERVATIVE_OPTIMIZATION_ITERATIONS"] = "10"
+        # if compiler_cfg.balancer_policy == "default":
+        #     compiler_cfg.balancer_policy = "Ribbon"
+        #     os.environ["PYBUDA_RIBBON2"] = "1"
+            
+        # if data_type == "Fp16_b" and pybuda.detect_available_devices()[0] == BackendDevice.Wormhole_B0:
+        #     os.environ["PYBUDA_ENABLE_DRAM_IO_BUFFER_SCALING"] = "1"
+        #     os.environ["PYBUDA_ENABLE_INPUT_BUFFER_SCALING_FOR_NOC_READERS"] = "1"
 
-        if pybuda.detect_available_devices()[0] != BackendDevice.Grayskull:
-            os.environ["PYBUDA_MAXIMIZE_SPARSE_UBLOCK"] = "1"
-            os.environ["PYBUDA_SUPRESS_T_FACTOR_MM"] = "16"
-            os.environ["PYBUDA_FUSED_OP_MULTIPLIER"] = "7"
+        # os.environ["PYBUDA_FORCE_CONV_MULTI_OP_FRACTURE"] = "1"
+        # os.environ["PYBUDA_BALANCER_PREPASS_DISABLED"] = "1"
+        # os.environ["PYBUDA_ENABLE_HOST_INPUT_NOP_BUFFERING"] = "1"
 
     # Set model parameters based on chosen task and model configuration
     if config == "sm":

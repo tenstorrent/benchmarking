@@ -22,15 +22,29 @@ def whisper_enc_dec(training: bool, task: str, config: str, microbatch: int, dev
 
     compiler_cfg = pybuda.config._get_global_compiler_config()
 
-    if compiler_cfg.balancer_policy == "default":
-        compiler_cfg.balancer_policy = "Ribbon"
-        os.environ["PYBUDA_RIBBON2"] = "1"
+    if data_type == "Fp16_b" and pybuda.detect_available_devices()[0] == BackendDevice.Wormhole_B0:
+        os.environ["PYBUDA_ENABLE_DRAM_IO_BUFFER_SCALING"] = "1"
+        os.environ["PYBUDA_ENABLE_INPUT_BUFFER_SCALING_FOR_NOC_READERS"] = "1"
+    
+    available_devices = pybuda.detect_available_devices()
+    if available_devices:
+        if available_devices[0] == BackendDevice.Grayskull:
+            pybuda.config.set_epoch_break("conv2d_9.dc.sparse_matmul.9.dc.sparse_matmul.1.lc2")
+            pybuda.config.override_op_size("conv2d_9.dc.sparse_matmul.9.dc.sparse_matmul.1.lc2", (1, 12))
 
-    # These are about to be enabled by default.
-    #
-    os.environ["PYBUDA_TEMP_SCALE_SPARSE_ESTIMATE_ARGS"] = "1"
-    os.environ["PYBUDA_TEMP_ENABLE_NEW_FUSED_ESTIMATES"] = "1"
-    os.environ["PYBUDA_TEMP_ENABLE_NEW_SPARSE_ESTIMATES"] = "1"
+    # if compiler_cfg.balancer_policy == "default":
+    #     compiler_cfg.balancer_policy = "Ribbon"
+    #     os.environ["PYBUDA_RIBBON2"] = "1"
+
+    # if data_type == "Fp16_b" and pybuda.detect_available_devices()[0] == BackendDevice.Wormhole_B0:
+    #     os.environ["PYBUDA_ENABLE_DRAM_IO_BUFFER_SCALING"] = "1"
+    #     os.environ["PYBUDA_ENABLE_INPUT_BUFFER_SCALING_FOR_NOC_READERS"] = "1"
+    
+    # available_devices = pybuda.detect_available_devices()
+    # if available_devices:
+    #     if available_devices[0] == BackendDevice.Grayskull:
+    #         pybuda.config.set_epoch_break("conv2d_9.dc.sparse_matmul.9.dc.sparse_matmul.1.lc2")
+    #         pybuda.config.override_op_size("conv2d_9.dc.sparse_matmul.9.dc.sparse_matmul.1.lc2", (1, 12))
 
     # Determine model variant
     if config == "small":

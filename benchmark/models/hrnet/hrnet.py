@@ -38,34 +38,49 @@ def hrnet(training: bool, task: str, config: str, microbatch: int, device: str, 
 
         if compiler_cfg.balancer_policy == "default":
             compiler_cfg.balancer_policy = "Ribbon"
-            os.environ["PYBUDA_RIBBON2"] = "1"
 
-        os.environ["PYBUDA_SUPRESS_T_FACTOR_MM"] = "46"  # removing causes hang #2139
+        if data_type == "Bfp8_b" and pybuda.detect_available_devices()[0] == BackendDevice.Wormhole_B0:
+            os.environ["PYBUDA_ENABLE_DRAM_IO_BUFFER_SCALING"] = "1"
+            os.environ["PYBUDA_ENABLE_INPUT_BUFFER_SCALING_FOR_NOC_READERS"] = "1"
+
+        os.environ["PYBUDA_SUPRESS_T_FACTOR_MM"] = "46" # removing causes hang #2139
         os.environ["PYBUDA_ENABLE_HOST_INPUT_NOP_BUFFERING"] = "1"
 
         # These are about to be enabled by default.
         #
-        os.environ["PYBUDA_TEMP_ENABLE_NEW_FUSED_ESTIMATES"] = "1"
-        os.environ["PYBUDA_TEMP_SCALE_SPARSE_ESTIMATE_ARGS"] = "1"
         os.environ["PYBUDA_RIBBON2_CALCULATE_TARGET_CYCLES"] = "1"
-        os.environ["PYBUDA_TEMP_ENABLE_NEW_SPARSE_ESTIMATES"] = "1"
         if data_type == "Fp16_b":
             # Hangs with autotranspose on #2542
             compiler_cfg.enable_auto_transposing_placement = False
-            os.environ["PYBUDA_RIBBON2_OPTIMIZATION_ITERATIONS"] = "10"
 
         # Manually enable amp light for Ribbon
         if compiler_cfg.balancer_policy == "Ribbon":
             compiler_cfg.enable_amp_light()
 
-        if config == "v2_w64":
-            if data_type == "Bfp8_b":
-                if "TT_BACKEND_OVERLAY_MAX_EXTRA_BLOB_SIZE" not in os.environ:
-                    os.environ["TT_BACKEND_OVERLAY_MAX_EXTRA_BLOB_SIZE"] = f"{10*1024}"
-            available_devices = pybuda.detect_available_devices()
-            if available_devices:
-                if available_devices[0] == BackendDevice.Grayskull:
-                    pybuda.config._internal_insert_fj_buffering_nop("add_312", ["add_341"], nop_count=2)
+        # compiler_cfg.enable_auto_transposing_placement = True
+
+        # if compiler_cfg.balancer_policy == "default":
+        #     compiler_cfg.balancer_policy = "Ribbon"
+        #     os.environ["PYBUDA_RIBBON2"] = "1"
+
+        # if data_type == "Bfp8_b" and pybuda.detect_available_devices()[0] == BackendDevice.Wormhole_B0:
+        #     os.environ["PYBUDA_ENABLE_DRAM_IO_BUFFER_SCALING"] = "1"
+        #     os.environ["PYBUDA_ENABLE_INPUT_BUFFER_SCALING_FOR_NOC_READERS"] = "1"
+
+        # os.environ["PYBUDA_SUPRESS_T_FACTOR_MM"] = "46" # removing causes hang #2139
+        # os.environ["PYBUDA_ENABLE_HOST_INPUT_NOP_BUFFERING"] = "1"
+
+        # # These are about to be enabled by default.
+        # #
+        # os.environ["PYBUDA_RIBBON2_CALCULATE_TARGET_CYCLES"] = "1"
+        # if data_type == "Fp16_b":
+        #     # Hangs with autotranspose on #2542
+        #     compiler_cfg.enable_auto_transposing_placement = False
+
+        # # Manually enable amp light for Ribbon
+        # if compiler_cfg.balancer_policy == "Ribbon":
+        #     compiler_cfg.enable_amp_light()
+
 
     # Set model parameters based on chosen task and model configuration
     img_res = 224

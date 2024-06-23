@@ -13,7 +13,9 @@ from ...common import BrainSegmentationDataset, DummyCVDataset, benchmark_model,
 
 @benchmark_model(configs=["256"])
 def unet(training: bool, task: str, config: str, microbatch: int, device: str, data_type: str):
+
     if device == "tt":
+        
         import pybuda
         from pybuda._C.backend_api import BackendDevice
 
@@ -23,19 +25,46 @@ def unet(training: bool, task: str, config: str, microbatch: int, device: str, d
 
         if compiler_cfg.balancer_policy == "default":
             compiler_cfg.balancer_policy = "Ribbon"
-            os.environ["PYBUDA_RIBBON2"] = "1"
+
+        if data_type == "Bfp8_b" and pybuda.detect_available_devices()[0] == BackendDevice.Wormhole_B0:
+            os.environ["PYBUDA_ENABLE_DRAM_IO_BUFFER_SCALING"] = "1"
+            os.environ["PYBUDA_ENABLE_INPUT_BUFFER_SCALING_FOR_NOC_READERS"] = "1"
 
         # Manually enable amp light for Ribbon
         if compiler_cfg.balancer_policy == "Ribbon":
             compiler_cfg.enable_amp_light()
 
         os.environ["PYBUDA_ENABLE_HOST_INPUT_NOP_BUFFERING"] = "1"
+        os.environ["PYBUDA_ALLOW_MULTICOLUMN_SPARSE_MATMUL"] = "1"
+        os.environ["PYBUDA_SUPRESS_T_FACTOR_MM"] = "60"
 
         # These are about to be enabled by default.
         #
-        os.environ["PYBUDA_TEMP_ENABLE_NEW_FUSED_ESTIMATES"] = "1"
-        os.environ["PYBUDA_TEMP_ENABLE_NEW_SPARSE_ESTIMATES"] = "1"
-        os.environ["PYBUDA_TEMP_SCALE_SPARSE_ESTIMATE_ARGS"] = "1"
+        os.environ["PYBUDA_RIBBON2_CALCULATE_TARGET_CYCLES"] = "1"
+
+        # compiler_cfg.enable_tvm_constant_prop = True
+        # compiler_cfg.enable_auto_transposing_placement = True
+
+        # if compiler_cfg.balancer_policy == "default":
+        #     compiler_cfg.balancer_policy = "Ribbon"
+        #     os.environ["PYBUDA_RIBBON2"] = "1"
+
+        # if data_type == "Bfp8_b" and pybuda.detect_available_devices()[0] == BackendDevice.Wormhole_B0:
+        #     os.environ["PYBUDA_ENABLE_DRAM_IO_BUFFER_SCALING"] = "1"
+        #     os.environ["PYBUDA_ENABLE_INPUT_BUFFER_SCALING_FOR_NOC_READERS"] = "1"
+
+        # # Manually enable amp light for Ribbon
+        # if compiler_cfg.balancer_policy == "Ribbon":
+        #     compiler_cfg.enable_amp_light()
+
+        # os.environ["PYBUDA_ENABLE_HOST_INPUT_NOP_BUFFERING"] = "1"
+        # os.environ["PYBUDA_ALLOW_MULTICOLUMN_SPARSE_MATMUL"] = "1"
+        # os.environ["PYBUDA_SUPRESS_T_FACTOR_MM"] = "60"
+
+        # # These are about to be enabled by default.
+        # #
+        # os.environ["PYBUDA_RIBBON2_CALCULATE_TARGET_CYCLES"] = "1"
+
 
     # Set model parameters based on chosen task and model configuration
     if config == "256":
@@ -95,10 +124,11 @@ def unet(training: bool, task: str, config: str, microbatch: int, device: str, d
             n_samples=n_samples,
         )
 
-        def collate_fn(batch):
+        def collate_fn(batch):            
             # Separate inputs and labels
             inputs = [item[0] for item in batch]
             labels = [item[1] for item in batch]
+
             # Stack inputs and labels into two separate tensors
             inputs = [torch.stack(inputs)]
             labels = torch.stack(labels)
