@@ -16,7 +16,7 @@ echo "Running TT-Model Benchmarking on $TT_DEVICE"
 if [ "$TT_DEVICE" = "wormhole" ]; then
     python benchmark.py -d tt -m bert -c large --task text_classification -mb 64 -df Bfp8_b -mf LoFi --loop_count 128 -opt 4 --save_output
 elif [ "$TT_DEVICE" = "grayskull" ]; then
-    python benchmark.py -d tt -m bert -c large --task text_classification -mb 64 --loop_count 128 -df Bfp8_b -mf LoFi -opt 4 --save_output
+    python benchmark.py -d tt -m bert -c large --task text_classification -mb 64 --loop_count 8 -df Bfp8_b -mf LoFi -opt 4 --save_output
 else
     echo "Invalid TT_DEVICE: $TT_DEVICE"
     exit 1
@@ -66,7 +66,7 @@ fi
 
 # MobileNetV1 - Image Classification - ImageNet
 if [ "$TT_DEVICE" = "wormhole" ]; then
-    python benchmark.py -d tt -m mobilenetv1 -c 224 --task image_classification -mb 256 -df Bfp8_b -mf LoFi --loop_count 128 -opt 4 --save_output
+    python benchmark.py -d tt -m mobilenetv1 -c 224 --task image_classification -mb 64 -df Bfp8_b -mf LoFi --loop_count 128 -opt 4 --save_output
 elif [ "$TT_DEVICE" = "grayskull" ]; then
     python benchmark.py -d tt -m mobilenetv1 -c 224 --task image_classification -mb 64 -mf HiFi3 --loop_count 128 -opt 4 --save_output
 else
@@ -136,7 +136,7 @@ fi
 
 # OpenPose - Pose Estimation - COCO keypoints
 if [ "$TT_DEVICE" = "wormhole" ]; then
-    python benchmark.py -d tt -m open_pose -c 2d --task pose_estimation -mb 128 -df Fp16 --loop_count 128 -opt 4 --save_output
+    python benchmark.py -d tt -m open_pose -c 2d --task pose_estimation -mb 64 -df Fp16 --loop_count 128 -opt 4 --save_output
 elif [ "$TT_DEVICE" = "grayskull" ]; then
     python benchmark.py -d tt -m open_pose -c 2d --task pose_estimation -mb 64 -df Fp16 --loop_count 128 -opt 4 --save_output
 else

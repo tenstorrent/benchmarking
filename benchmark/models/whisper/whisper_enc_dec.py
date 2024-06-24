@@ -21,6 +21,10 @@ def whisper_enc_dec(training: bool, task: str, config: str, microbatch: int, dev
     from pybuda._C.backend_api import BackendDevice
 
     compiler_cfg = pybuda.config._get_global_compiler_config()
+    compiler_cfg.dont_fuse("subtract_634")
+
+    if compiler_cfg.balancer_policy == "default":
+        compiler_cfg.balancer_policy = "Ribbon"
 
     if data_type == "Fp16_b" and pybuda.detect_available_devices()[0] == BackendDevice.Wormhole_B0:
         os.environ["PYBUDA_ENABLE_DRAM_IO_BUFFER_SCALING"] = "1"
