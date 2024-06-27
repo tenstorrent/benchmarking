@@ -109,6 +109,7 @@ def hrnet(training: bool, task: str, config: str, microbatch: int, device: str, 
         if available_devices:
             if available_devices[0] == BackendDevice.Grayskull:
                 pybuda.config._internal_insert_fj_buffering_nop('add_312', ['add_341'], nop_count=2)
+                pybuda.config.set_epoch_break("resize2d_3176.dc.sparse_matmul.3.lc2")
     else:
         raise RuntimeError("Unknown config")
 
