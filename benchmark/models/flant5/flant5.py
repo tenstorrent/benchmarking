@@ -16,6 +16,7 @@ def flant5(training: bool, task: str, config: str, microbatch: int, device: str,
 
     if device == "tt":
         import pybuda
+        from pybuda._C.backend_api import BackendDevice
         from pybuda.transformers.pipeline import pipeline as pybuda_pipeline
 
         os.environ["PYBUDA_PAD_OUTPUT_BUFFER"] = "1"
@@ -28,6 +29,8 @@ def flant5(training: bool, task: str, config: str, microbatch: int, device: str,
         compiler_cfg.enable_tvm_cpu_fallback = False
         compiler_cfg.default_df_override = pybuda._C.Float16_b
         compiler_cfg.default_dram_parameters = False
+        if pybuda.detect_available_devices()[0] == BackendDevice.Grayskull:
+            compiler_cfg.enable_auto_fusing = False
         compiler_cfg.enable_amp_light()
         # compiler_cfg.compile_subgraphs = True
         # compiler_cfg.enable_link_past_cache_ios = True
