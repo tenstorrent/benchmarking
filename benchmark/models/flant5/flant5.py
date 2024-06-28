@@ -29,8 +29,8 @@ def flant5(training: bool, task: str, config: str, microbatch: int, device: str,
         compiler_cfg.default_df_override = pybuda._C.Float16_b
         compiler_cfg.default_dram_parameters = False
         compiler_cfg.enable_amp_light()
-        compiler_cfg.compile_subgraphs = True
-        compiler_cfg.enable_link_past_cache_ios = True
+        # compiler_cfg.compile_subgraphs = True
+        # compiler_cfg.enable_link_past_cache_ios = True
 
         # os.environ["PYBUDA_PAD_OUTPUT_BUFFER"] = "1"
         # os.environ["PYBUDA_FORCE_SEQUENTIAL"] = "1"
