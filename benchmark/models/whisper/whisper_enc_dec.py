@@ -214,11 +214,10 @@ def whisper_enc_dec(training: bool, task: str, config: str, microbatch: int, dev
 
     # Task specific configuration
     if task == "na":
-        import librosa
 
         # Get sample
         ds = load_dataset("hf-internal-testing/librispeech_asr_dummy", "clean", split="validation")
-        sample_audio = ds[0]["audio"]["path"]
+        sample_audio = ds[0]["audio"]["array"]
 
         # Create random inputs and targets
         dataset = DummyPipelineDataset(
@@ -226,8 +225,6 @@ def whisper_enc_dec(training: bool, task: str, config: str, microbatch: int, dev
             sample_text=sample_audio,
             answer="",
         )
-        # need to load audio files with sample_rate=16000 for whisper
-        dataset.data = [(librosa.load(d, sr=16000)[0], label) for d, label in dataset.data]
         collate_fn = None
 
         # Define evaluation function

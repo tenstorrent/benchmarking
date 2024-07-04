@@ -86,7 +86,7 @@ def whisper(training: bool, task: str, config: str, microbatch: int, device: str
 
         # Get sample
         ds = load_dataset("hf-internal-testing/librispeech_asr_dummy", "clean", split="validation")
-        sample_audio = ds[0]["audio"]["path"]
+        sample_audio = ds[0]["audio"]["array"]
 
         # Create random inputs and targets
         dataset = DummyPipelineDataset(
@@ -94,7 +94,6 @@ def whisper(training: bool, task: str, config: str, microbatch: int, device: str
             sample_text=sample_audio,
             answer="",
         )
-
         collate_fn = None
 
         # Define evaluation function
