@@ -320,6 +320,11 @@ def run(
 
         benchmark_run.end_benchmark_timer()
 
+        # Combine outputs for data parallel runs
+        if os.environ.get("PYBUDA_N300_DATA_PARALLEL", "0") == "1":
+            flattened_list = [[tensor] for sublist in store_outputs for tensor in sublist]
+            store_outputs = flattened_list
+
         if pybuda.error_raised():
             print("*********************************")
             print(" Error raised, aborting benchmark")
@@ -365,6 +370,7 @@ def run(
     # Store model output
     if args.model_output:
         store_model_output(model, benchmark_run, store_outputs, store_labels)
+
     # Benchmark results
     eval_score = eval_fn(outputs=store_outputs, labels=store_labels)
     output_stats_dict = benchmark_run.calc_output_stats(store_outputs, model, eval_score)
