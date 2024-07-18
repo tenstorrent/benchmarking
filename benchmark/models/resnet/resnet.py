@@ -44,29 +44,6 @@ def resnet(training: bool, task: str, config: str, microbatch: int, device: str,
         if data_type == "Bfp8_b":
             pybuda.config.configure_mixed_precision(name_regex="input.*add.*", output_df=pybuda.DataFormat.Float16_b)
 
-        # compiler_cfg.enable_auto_transposing_placement = True
-
-        # if compiler_cfg.balancer_policy == "default":
-        #     compiler_cfg.balancer_policy = "Ribbon"
-        #     os.environ["PYBUDA_RIBBON2"] = "1"
-
-        # os.environ["PYBUDA_ENABLE_HOST_INPUT_NOP_BUFFERING"] = "1"
-        # os.environ["PYBUDA_ALLOW_MULTICOLUMN_SPARSE_MATMUL"] = "1"
-
-        # if data_type == "Bfp8_b" and pybuda.detect_available_devices()[0] == BackendDevice.Wormhole_B0:
-        #     os.environ["PYBUDA_ENABLE_DRAM_IO_BUFFER_SCALING"] = "1"
-        #     os.environ["PYBUDA_ENABLE_INPUT_BUFFER_SCALING_FOR_NOC_READERS"] = "1"
-
-        # # These are about to be enabled by default.
-        # #
-        # os.environ["PYBUDA_RIBBON2_CALCULATE_TARGET_CYCLES"] = "1"
-
-        # if data_type == "Fp16_b":
-        #     os.environ["PYBUDA_RIBBON2_CALCULATE_TARGET_CYCLES_APPLY_FILTERING"] = "1"
-
-        # if data_type == "Bfp8_b":
-        #     pybuda.config.configure_mixed_precision(name_regex="input.*add.*", output_df=pybuda.DataFormat.Float16_b)
-
     # Set model parameters based on chosen task and model configuration
     if config == "resnet18":
         model_name = "microsoft/resnet-18"

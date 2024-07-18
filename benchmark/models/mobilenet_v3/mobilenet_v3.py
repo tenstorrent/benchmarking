@@ -36,18 +36,6 @@ def mobilenetv3(training: bool, task: str, config: str, microbatch: int, device:
         os.environ["PYBUDA_BALANCER_PREPASS_DISABLED"] = "1"
         os.environ["PYBUDA_ENABLE_HOST_INPUT_NOP_BUFFERING"] = "1"
 
-        # if compiler_cfg.balancer_policy == "default":
-        #     compiler_cfg.balancer_policy = "Ribbon"
-        #     os.environ["PYBUDA_RIBBON2"] = "1"
-            
-        # if data_type == "Fp16_b" and pybuda.detect_available_devices()[0] == BackendDevice.Wormhole_B0:
-        #     os.environ["PYBUDA_ENABLE_DRAM_IO_BUFFER_SCALING"] = "1"
-        #     os.environ["PYBUDA_ENABLE_INPUT_BUFFER_SCALING_FOR_NOC_READERS"] = "1"
-
-        # os.environ["PYBUDA_FORCE_CONV_MULTI_OP_FRACTURE"] = "1"
-        # os.environ["PYBUDA_BALANCER_PREPASS_DISABLED"] = "1"
-        # os.environ["PYBUDA_ENABLE_HOST_INPUT_NOP_BUFFERING"] = "1"
-
     # Set model parameters based on chosen task and model configuration
     if config == "sm":
         model_name = "hf_hub:timm/mobilenetv3_small_100.lamb_in1k"

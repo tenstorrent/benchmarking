@@ -30,16 +30,6 @@ def inception_v4(training: bool, task: str, config: str, microbatch: int, device
             os.environ["PYBUDA_ENABLE_DRAM_IO_BUFFER_SCALING"] = "1"
             os.environ["PYBUDA_ENABLE_INPUT_BUFFER_SCALING_FOR_NOC_READERS"] = "1"
 
-        # compiler_cfg.enable_auto_transposing_placement = True
-
-        # if compiler_cfg.balancer_policy == "default":
-        #     compiler_cfg.balancer_policy = "Ribbon"
-        #     os.environ["PYBUDA_RIBBON2"] = "1"
-
-        # if data_type == "Bfp8_b" and pybuda.detect_available_devices()[0] == BackendDevice.Wormhole_B0:
-        #     os.environ["PYBUDA_ENABLE_DRAM_IO_BUFFER_SCALING"] = "1"
-        #     os.environ["PYBUDA_ENABLE_INPUT_BUFFER_SCALING_FOR_NOC_READERS"] = "1"
-
     if config == "224":
         model_name = "inception_v4"
         img_res = 224  # https://github.com/huggingface/pytorch-image-models/blob/main/train.py#L122

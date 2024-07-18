@@ -5,9 +5,9 @@ from pathlib import Path
 
 import cv2
 import numpy as np
+import PIL
 import torch
 import yolov5
-import PIL
 from PIL import Image
 from pycocotools.coco import COCO
 from pycocotools.cocoeval import COCOeval

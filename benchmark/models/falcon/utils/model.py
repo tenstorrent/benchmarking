@@ -14,6 +14,7 @@ import torch
 from torch.nn import functional as F
 from transformers import AutoTokenizer
 from transformers.generation.utils import TopKLogitsWarper, TopPLogitsWarper
+
 from benchmark.common.benchmark_run import OutputType
 from benchmark.models.falcon.utils.configuration_RW import RWConfig
 from benchmark.models.falcon.utils.pybudify import PyBudify
@@ -337,7 +338,7 @@ def top_k_top_p_filtering(
 
 
 def sample_kp_logits(logits, k, p):
-    
+
     next_token_logscores = top_k_top_p_filtering(logits, top_k=k, top_p=p)
     probs = F.softmax(next_token_logscores, dim=-1)
     next_token = torch.multinomial(probs, num_samples=1).squeeze(1)

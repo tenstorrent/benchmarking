@@ -49,38 +49,6 @@ def yolo_v5(training: bool, task: str, config: str, microbatch: int, device: str
             compiler_cfg.enable_auto_fusing = False  # required to fix accuracy
             os.environ["PYBUDA_DECOMPOSE_SIGMOID"] = "1"
 
-
-        # compiler_cfg.enable_auto_transposing_placement = True
-
-        # if compiler_cfg.balancer_policy == "default":
-        #     compiler_cfg.balancer_policy = "Ribbon"
-        #     os.environ["PYBUDA_RIBBON2"] = "1"
-
-        # from pybuda._C.backend_api import BackendDevice
-        # available_devices = pybuda.detect_available_devices()
-
-        # if data_type == "Fp16_b" and pybuda.detect_available_devices()[0] == BackendDevice.Wormhole_B0:
-        #     os.environ["PYBUDA_ENABLE_DRAM_IO_BUFFER_SCALING"] = "1"
-        #     os.environ["PYBUDA_ENABLE_INPUT_BUFFER_SCALING_FOR_NOC_READERS"] = "1"
-
-        # # Temp perf workaround for tenstorrent/bbe#2595
-        # os.environ["PYBUDA_PAD_OUTPUT_BUFFER"] = "1"
-
-        # if data_type == "Fp16_b":
-        #     if available_devices[0] != BackendDevice.Grayskull:
-        #         os.environ["PYBUDA_FORK_JOIN_BUF_QUEUES"] = "1"
-
-        # if data_type == "Bfp8_b":
-        #     os.environ["PYBUDA_FORK_JOIN_SKIP_EXPANDING_BUFFERS"] = "1"
-        #     # Temp workaround for tenstorrent/bbe#2595, output BW is unpredictable.
-        #     os.environ["PYBUDA_DISABLE_STREAM_OUTPUT"] = "1"
-
-        # if available_devices[0] == BackendDevice.Grayskull:
-        #     compiler_cfg.enable_tm_cpu_fallback = True
-        #     compiler_cfg.enable_tm_cpu_fallback = True
-        #     compiler_cfg.enable_auto_fusing = False  # required to fix accuracy
-        #     os.environ["PYBUDA_DECOMPOSE_SIGMOID"] = "1"
-
     # Set model parameters based on chosen task and model configuration
     if config == "s":
         # Load model
