@@ -20,22 +20,15 @@ def inception_v4(training: bool, task: str, config: str, microbatch: int, device
         import pybuda
         from pybuda._C.backend_api import BackendDevice
 
-        # Configurations
-        compiler_cfg = pybuda.config._get_global_compiler_config()  # load global compiler config object
+        compiler_cfg = pybuda.config._get_global_compiler_config()
         compiler_cfg.enable_auto_transposing_placement = True
 
         if compiler_cfg.balancer_policy == "default":
             compiler_cfg.balancer_policy = "Ribbon"
-            os.environ["PYBUDA_RIBBON2"] = "1"
 
-        # These are about to be enabled by default.
-        #
-        os.environ["PYBUDA_TEMP_ENABLE_NEW_FUSED_ESTIMATES"] = "1"
-        os.environ["PYBUDA_TEMP_ENABLE_NEW_SPARSE_ESTIMATES"] = "1"
-        os.environ["PYBUDA_RIBBON2_CONSERVATIVE_OPTIMIZATION_ITERATIONS"] = "10"
-
-        if data_type == "Bfp8_b":
-            os.environ["PYBUDA_TEMP_SCALE_SPARSE_ESTIMATE_ARGS"] = "1"
+        if data_type == "Bfp8_b" and pybuda.detect_available_devices()[0] == BackendDevice.Wormhole_B0:
+            os.environ["PYBUDA_ENABLE_DRAM_IO_BUFFER_SCALING"] = "1"
+            os.environ["PYBUDA_ENABLE_INPUT_BUFFER_SCALING_FOR_NOC_READERS"] = "1"
 
     if config == "224":
         model_name = "inception_v4"

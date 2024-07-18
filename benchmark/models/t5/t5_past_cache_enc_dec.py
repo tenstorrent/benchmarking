@@ -68,18 +68,22 @@ def t5_past_cache_enc_dec(training: bool, task: str, config: str, microbatch: in
 
         compiler_cfg = pybuda.config._get_global_compiler_config()
 
-        # Compiler configurations
         if compiler_cfg.balancer_policy == "default":
             compiler_cfg.balancer_policy = "Ribbon"
-            os.environ["PYBUDA_RIBBON2"] = "1"
+
+        if data_type == "Fp16_b" and pybuda.detect_available_devices()[0] == BackendDevice.Wormhole_B0:
+            os.environ["PYBUDA_ENABLE_DRAM_IO_BUFFER_SCALING"] = "1"
+            os.environ["PYBUDA_ENABLE_INPUT_BUFFER_SCALING_FOR_NOC_READERS"] = "1"
 
         # These are about to be enabled by default.
         #
-        os.environ["PYBUDA_TEMP_ENABLE_NEW_FUSED_ESTIMATES"] = "1"
-        os.environ["PYBUDA_TEMP_SCALE_SPARSE_ESTIMATE_ARGS"] = "1"
         os.environ["PYBUDA_RIBBON2_CALCULATE_TARGET_CYCLES"] = "1"
-        os.environ["PYBUDA_TEMP_ENABLE_NEW_SPARSE_ESTIMATES"] = "1"
         os.environ["PYBUDA_EXP_APPROX"] = "1"
+
+        if data_type == "Bfp8_b":
+            pybuda.config.configure_mixed_precision(op_type="add", output_df=pybuda.DataFormat.Float16_b)
+            pybuda.config.configure_mixed_precision(op_type="subtract", output_df=pybuda.DataFormat.Float16_b)
+            pybuda.config.configure_mixed_precision(op_type="reciprocal", output_df=pybuda.DataFormat.Float16_b)
 
         # ---------------------------------------------------------------------------------------- #
         # T5, END
@@ -98,6 +102,7 @@ def t5_past_cache_enc_dec(training: bool, task: str, config: str, microbatch: in
         os.environ["PYBUDA_ROTATE_PAST_CACHE_PARAMS"] = "1"
 
         # Compiler configurations
+        compiler_cfg = pybuda.config._get_global_compiler_config()
         compiler_cfg.enable_tvm_cpu_fallback = False
         compiler_cfg.default_df_override = pybuda._C.Float16_b
         compiler_cfg.default_dram_parameters = False

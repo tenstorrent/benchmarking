@@ -21,16 +21,20 @@ def whisper_enc_dec(training: bool, task: str, config: str, microbatch: int, dev
     from pybuda._C.backend_api import BackendDevice
 
     compiler_cfg = pybuda.config._get_global_compiler_config()
+    compiler_cfg.dont_fuse("subtract_634")
 
     if compiler_cfg.balancer_policy == "default":
         compiler_cfg.balancer_policy = "Ribbon"
-        os.environ["PYBUDA_RIBBON2"] = "1"
 
-    # These are about to be enabled by default.
-    #
-    os.environ["PYBUDA_TEMP_SCALE_SPARSE_ESTIMATE_ARGS"] = "1"
-    os.environ["PYBUDA_TEMP_ENABLE_NEW_FUSED_ESTIMATES"] = "1"
-    os.environ["PYBUDA_TEMP_ENABLE_NEW_SPARSE_ESTIMATES"] = "1"
+    if data_type == "Fp16_b" and pybuda.detect_available_devices()[0] == BackendDevice.Wormhole_B0:
+        os.environ["PYBUDA_ENABLE_DRAM_IO_BUFFER_SCALING"] = "1"
+        os.environ["PYBUDA_ENABLE_INPUT_BUFFER_SCALING_FOR_NOC_READERS"] = "1"
+
+    available_devices = pybuda.detect_available_devices()
+    if available_devices:
+        if available_devices[0] == BackendDevice.Grayskull:
+            pybuda.config.set_epoch_break("conv2d_9.dc.sparse_matmul.9.dc.sparse_matmul.1.lc2")
+            pybuda.config.override_op_size("conv2d_9.dc.sparse_matmul.9.dc.sparse_matmul.1.lc2", (1, 12))
 
     # Determine model variant
     if config == "small":
@@ -196,11 +200,10 @@ def whisper_enc_dec(training: bool, task: str, config: str, microbatch: int, dev
 
     # Task specific configuration
     if task == "na":
-        import librosa
 
         # Get sample
         ds = load_dataset("hf-internal-testing/librispeech_asr_dummy", "clean", split="validation")
-        sample_audio = ds[0]["audio"]["path"]
+        sample_audio = ds[0]["audio"]["array"]
 
         # Create random inputs and targets
         dataset = DummyPipelineDataset(
@@ -208,8 +211,6 @@ def whisper_enc_dec(training: bool, task: str, config: str, microbatch: int, dev
             sample_text=sample_audio,
             answer="",
         )
-        # need to load audio files with sample_rate=16000 for whisper
-        dataset.data = [(librosa.load(d, sr=16000)[0], label) for d, label in dataset.data]
         collate_fn = None
 
         # Define evaluation function

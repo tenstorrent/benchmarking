@@ -5,6 +5,7 @@ from pathlib import Path
 
 import cv2
 import numpy as np
+import PIL
 import torch
 import yolov5
 from PIL import Image
@@ -66,17 +67,21 @@ def data_preprocessing(ims: Image.Image, size: tuple) -> tuple:
 def yolov5_preprocessing(dataset, target_height, target_width):
     data = []
     for image_file_path, label in dataset.data:
-        ims, n, files, orig_shape, scaled_shape, pixel_values = data_preprocessing(
-            Image.open(image_file_path), size=(target_height, target_width)
-        )
-        # YOLOv5 needs original shape and scaled shape to scale boxes
-        full_label = {
-            "image_id": label["image_id"],
-            "orig_shape": orig_shape[0],
-            "scaled_shape": scaled_shape,
-        }
-        inputs = pixel_values.squeeze()
-        data.append((inputs, full_label))
+        try:
+            ims, n, files, orig_shape, scaled_shape, pixel_values = data_preprocessing(
+                Image.open(image_file_path), size=(target_height, target_width)
+            )
+            # YOLOv5 needs original shape and scaled shape to scale boxes
+            full_label = {
+                "image_id": label["image_id"],
+                "orig_shape": orig_shape[0],
+                "scaled_shape": scaled_shape,
+            }
+            inputs = pixel_values.squeeze()
+            data.append((inputs, full_label))
+        except PIL.UnidentifiedImageError as pil_err:
+            print(pil_err)
+            print(f"Image {image_file_path} is corrupted.")
 
     return data
 

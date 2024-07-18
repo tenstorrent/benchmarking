@@ -62,17 +62,6 @@ class PyBudify(torch.nn.Module):
             os.environ["PYBUDA_CONVERT_PARAMS_TO_TVM"] = "0"  # faster compile times... why would this ever be 1?
             os.environ["TT_BACKEND_TIMEOUT"] = "0"  # default is too aggressive for large models?
 
-            # os.environ["PYBUDA_ENABLE_BROADCAST_SPLITTING"] = "1"
-            # os.environ["PYBUDA_DISABLE_FORK_JOIN_BUF"] = "1"
-            # os.environ["PYBUDA_DRAM_PICK_CAPACITY"] = "1"
-            # os.environ["WHA0_DISABLE_RELAY_BUFS"] = "1"
-            # os.environ["PYBUDA_FUSE_STOP_ON_RECIPROCAL"] = "1"
-            # os.environ["PYBUDA_PLACER_SNAKE"] = "1" Not what we want for dual chip placement
-            # os.environ["PYBUDA_DISABLE_INTERACTIVE_PLACER"] = "1" # Until interactive placer supports multi-chip placement overrides
-            # os.environ["PYBUDA_PLACER_SNAKE"] = "1"
-            # os.environ["PYBUDA_ETH_LINKS_NEBULA"] = "1"
-            # os.environ["PYBUDA_DISABLE_DYNAMIC_DRAM"] = "1"
-
             if self.odkv or self.masked_odkv:
                 os.environ["PYBUDA_DISABLE_DYNAMIC_DRAM"] = "1"  # much better performance, not sure why?
 
@@ -122,12 +111,6 @@ class PyBudify(torch.nn.Module):
                         2: [pybuda.DataFormat.Float16_b, True],
                     },
                 )
-
-            # pybuda.config.configure_mixed_precision(
-            #     name_regex="matmul_.*",
-            #     input_df={1: [pybuda.DataFormat.Bfp8_b, True]})
-
-            # pybuda.override_op_size('matmul_61', (1,2))
 
             if lora:
                 os.environ["TT_BACKEND_OVERLAY_MAX_EXTRA_BLOB_SIZE"] = "147456"
@@ -300,21 +283,6 @@ class PyBudify(torch.nn.Module):
             compiler_cfg.input_queues_on_host = host_queues
 
             if self.masked_odkv:
-                # print('masked_odkv')
-
-                # compiler_cfg.enable_t_streaming = True
-                # compiler_cfg.manual_t_streaming = True
-
-                # pybuda.config.override_t_stream_dir(f"concatenate_50.dc.sparse_matmul.4.lc2", "c")
-                # pybuda.config.override_t_stream_dir(f"concatenate_67.dc.sparse_matmul.4.lc2", "c")
-
-                # import pdb; pdb.set_trace()
-
-                # pybuda.config.set_epoch_break("transpose_58.dc.sparse_matmul.4.lc2")
-
-                # pybuda.config.set_epoch_break("matmul_64")
-
-                # pybuda.config.add_schedule_constraint(['transpose_58.dc.sparse_matmul.4.lc2', 'add_59'])
 
                 if num_layers == 1:
                     names = "input__56, input__57"
@@ -329,27 +297,9 @@ class PyBudify(torch.nn.Module):
                 names_dict = {name: (i + 1) for i, name in enumerate(names)}
 
                 compiler_cfg = pybuda.config._get_global_compiler_config()
-
-                # pybuda.config.insert_fracture_group([(f"concatenate_50", 2, 2)])
-                # pybuda.config.insert_fracture_group([(f"concatenate_67", 2, 2)])
-
-                # pybuda.config.configure_mixed_precision(
-                #     name_regex="concatenate_50.dc.sparse_matmul.4.lc2",
-                #     input_df={0: [pybuda.DataFormat.Bfp8_b, True], 1: [pybuda.DataFormat.Bfp8_b, True], 2: [pybuda.DataFormat.Bfp8_b, True]})
-
-                # pybuda.config.configure_mixed_precision(
-                #     name_regex="concatenate_50.dc.sparse_matmul.4.lc2",
-                #     input_df={0: [pybuda.DataFormat.Bfp8_b, True], 1: [pybuda.DataFormat.Bfp8_b, True], 2: [pybuda.DataFormat.Bfp8_b, True]})
-
                 compiler_cfg.loopback_outputs = names_dict
 
             elif self.odkv:
-
-                # compiler_cfg.enable_t_streaming = True
-                # compiler_cfg.manual_t_streaming = True
-
-                # pybuda.config.override_t_stream_dir(f"concatenate_50.dc.sparse_matmul.4.lc2", "c")
-                # pybuda.config.override_t_stream_dir(f"concatenate_67.dc.sparse_matmul.4.lc2", "c")
 
                 if num_layers == 1:
                     names = "input__54, input__55"
@@ -363,18 +313,6 @@ class PyBudify(torch.nn.Module):
                 names_dict = {name: (i + 1) for i, name in enumerate(names)}
 
                 compiler_cfg = pybuda.config._get_global_compiler_config()
-
-                # pybuda.config.insert_fracture_group([(f"concatenate_50", 2, 2)])
-                # pybuda.config.insert_fracture_group([(f"concatenate_67", 2, 2)])
-
-                # pybuda.config.configure_mixed_precision(
-                #     name_regex="concatenate_50.dc.sparse_matmul.4.lc2",
-                #     input_df={0: [pybuda.DataFormat.Bfp8_b, True], 1: [pybuda.DataFormat.Bfp8_b, True], 2: [pybuda.DataFormat.Bfp8_b, True]})
-
-                # pybuda.config.configure_mixed_precision(
-                #     name_regex="concatenate_50.dc.sparse_matmul.4.lc2",
-                #     input_df={0: [pybuda.DataFormat.Bfp8_b, True], 1: [pybuda.DataFormat.Bfp8_b, True], 2: [pybuda.DataFormat.Bfp8_b, True]})
-
                 compiler_cfg.loopback_outputs = names_dict
             else:
                 compiler_cfg.enable_t_streaming = True
@@ -504,8 +442,5 @@ class PyBudify(torch.nn.Module):
                             print(f"[add_sched]: Override op spatial epoch: {fop}, chip {f}")
                             pybuda.config.override_op_placement(fop, chip_id=f, spatial_epoch_break=True)
                     constr.append(fop)
-        # for elem in exits:
-        # constr.append(elem)
-        # pybuda.config.override_op_placement(exits[0], temporal_epoch_break=True)
         print(f"[add_sched] sched: {constr}")
         return constr

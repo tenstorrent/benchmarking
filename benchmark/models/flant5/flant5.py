@@ -1,4 +1,4 @@
-# SPDX-FileCopyrightText: © 2023 Tenstorrent Inc.
+# SPDX-FileCopyrightText: © 2024 Tenstorrent AI ULC
 # SPDX-License-Identifier: Apache-2.0
 
 import os
@@ -16,27 +16,21 @@ def flant5(training: bool, task: str, config: str, microbatch: int, device: str,
 
     if device == "tt":
         import pybuda
+        from pybuda._C.backend_api import BackendDevice
         from pybuda.transformers.pipeline import pipeline as pybuda_pipeline
 
-        # Add PyBUDA configurations
         os.environ["PYBUDA_PAD_OUTPUT_BUFFER"] = "1"
-        os.environ["TT_BACKEND_MULTI_THREADED_PUSH"] = "1"
-        os.environ["PYBUDA_DISABLE_DYNAMIC_DRAM"] = "1"
-        os.environ["PYBUDA_EXTRA_L1_MARGIN"] = "120000"
         os.environ["PYBUDA_FORCE_SEQUENTIAL"] = "1"
-        os.environ["PYBUDA_NLP_MANUAL_TARGET"] = "35000"
         os.environ["TT_BACKEND_DRAM_POLLING_FREQUENCY"] = "64"
-        os.environ["TT_BACKEND_PROFILER"] = "1"
         os.environ["TT_BACKEND_EPOCH_BIN_NUM_SLOTS"] = "64"
         os.environ["PYBUDA_ROTATE_PAST_CACHE_PARAMS"] = "1"
-        os.environ["PYBUDA_TEMP_ELT_UNARY_ESTIMATES_LEGACY"] = "1"
 
         compiler_cfg = pybuda.config._get_global_compiler_config()
-        compiler_cfg.enable_t_streaming = True
         compiler_cfg.enable_tvm_cpu_fallback = False
         compiler_cfg.default_df_override = pybuda._C.Float16_b
         compiler_cfg.default_dram_parameters = False
-        compiler_cfg.enable_auto_fusing = False
+        if pybuda.detect_available_devices()[0] == BackendDevice.Grayskull:
+            compiler_cfg.enable_auto_fusing = False
         compiler_cfg.enable_amp_light()
 
     # Set model parameters based on chosen task and model configuration

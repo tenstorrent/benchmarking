@@ -59,6 +59,7 @@ def flant5_past_cache_enc_dec(training: bool, task: str, config: str, microbatch
 
     if device == "tt":
         import pybuda
+        from pybuda._C.backend_api import BackendDevice
         from pybuda.pybudaglobal import TILE_DIM
 
         # ---------------------------------------------------------------------------------------- #
@@ -69,14 +70,13 @@ def flant5_past_cache_enc_dec(training: bool, task: str, config: str, microbatch
 
         if compiler_cfg.balancer_policy == "default":
             compiler_cfg.balancer_policy = "Ribbon"
-            os.environ["PYBUDA_RIBBON2"] = "1"
+
+        if data_type == "Fp16_b" and pybuda.detect_available_devices()[0] == BackendDevice.Wormhole_B0:
+            os.environ["PYBUDA_ENABLE_DRAM_IO_BUFFER_SCALING"] = "1"
+            os.environ["PYBUDA_ENABLE_INPUT_BUFFER_SCALING_FOR_NOC_READERS"] = "1"
 
         # These are about to be enabled by default.
-        #
-        os.environ["PYBUDA_TEMP_ENABLE_NEW_FUSED_ESTIMATES"] = "1"
-        os.environ["PYBUDA_TEMP_SCALE_SPARSE_ESTIMATE_ARGS"] = "1"
         os.environ["PYBUDA_RIBBON2_CALCULATE_TARGET_CYCLES"] = "1"
-        os.environ["PYBUDA_TEMP_ENABLE_NEW_SPARSE_ESTIMATES"] = "1"
         os.environ["PYBUDA_EXP_APPROX"] = "1"
 
         # ---------------------------------------------------------------------------------------- #
