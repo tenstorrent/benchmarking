@@ -34,6 +34,9 @@ def open_pose(training: bool, task: str, config: str, microbatch: int, device: s
         os.environ["PYBUDA_SUPRESS_T_FACTOR_MM"] = "13"
         os.environ["PYBUDA_ENABLE_HOST_INPUT_NOP_BUFFERING"] = "1"
 
+        if config == "2d" and pybuda.detect_available_devices()[0] == BackendDevice.Wormhole_B0 and data_type == "Fp16" and math_fidelity == "HiFi3":
+            os.environ["PYBUDA_DISABLE_ELU_HANDLE_INF"] = "1"
+
         # Set model parameters based on chosen task and model configuration
         model_name = ""
         img_res = 224
