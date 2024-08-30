@@ -27,6 +27,9 @@ def open_pose(training: bool, task: str, config: str, microbatch: int, device: s
         if compiler_cfg.balancer_policy == "default":
             compiler_cfg.balancer_policy = "Ribbon"
 
+        if pybuda.detect_available_devices()[0] == BackendDevice.Grayskull:
+            compiler_cfg.enable_auto_fusing = False
+
         if data_type == "Fp16" and pybuda.detect_available_devices()[0] == BackendDevice.Wormhole_B0:
             os.environ["PYBUDA_ENABLE_DRAM_IO_BUFFER_SCALING"] = "1"
             os.environ["PYBUDA_ENABLE_INPUT_BUFFER_SCALING_FOR_NOC_READERS"] = "1"
