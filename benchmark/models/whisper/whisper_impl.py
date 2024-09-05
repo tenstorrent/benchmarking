@@ -14,7 +14,9 @@ from transformers import (
     WhisperForConditionalGeneration,
     WhisperTokenizer,
 )
+
 # from transformers.modeling_attn_mask_utils import _prepare_4d_causal_attention_mask
+
 
 class AttentionMaskConverter:
     """
