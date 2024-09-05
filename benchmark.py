@@ -14,7 +14,7 @@ import sys
 import threading
 import time
 import traceback
-from typing import Any, Callable, Dict
+from typing import Any, Callable, Dict, List, Optional
 
 import torch
 import transformers
@@ -89,7 +89,8 @@ def run(
     eval_fn: Callable,
     benchmark_run: BenchmarkRun,
 ) -> Dict[str, Any]:
-    # define input and output lists
+
+    # Define input and output lists
     input_data = []
     store_outputs = []
     store_labels = []
@@ -103,8 +104,129 @@ def run(
     if args.device == "tt":
         # Import PyBUDA packages
         import pybuda
+        from pybuda._C.backend_api import BackendDevice
+        from pybuda.tools.tti_data_parallel import (
+            ForwardInputs,
+            GenerativeInputs,
+            RunMode,
+            RunResult,
+            initialize_multicard_runner,
+            split_tensor_batch,
+        )
 
         from benchmark.common import df_from_str, mf_from_str, trace_from_str
+
+        def data_parallel_tti_run(
+            arch: BackendDevice,
+            inputs: List[Any],
+            loop_count: int,
+            output_dir: str,
+            device_ids: List[int],
+            benchmark_run: BenchmarkRun,
+            tt_device: Optional[pybuda.TTDevice] = None,
+            precompiled_image_path: Optional[str] = None,
+        ):
+            def duplicate_batch(input_data, factor: int):
+
+                def to_list(data):
+                    if isinstance(data, tuple) or isinstance(data, list):
+                        return [to_list(item) for item in data]
+                    else:
+                        return data
+
+                def duplicate_tensor(data, factor: int):
+                    if isinstance(data, torch.Tensor):
+                        duplicated_tensor = torch.cat([data] * factor, dim=0)
+                        return duplicated_tensor
+
+                    elif isinstance(data, list):
+                        for i in range(len(data)):
+                            data[i] = duplicate_tensor(data[i], factor)
+
+                    else:
+                        raise TypeError("Input data should contain list or torch tensor only")
+
+                    return data
+
+                data = to_list(input_data)
+                return duplicate_tensor(data, factor)
+
+            assert tt_device or precompiled_image_path, "One of tt_device or precompiled_image_path must be specified"
+            assert not (tt_device and precompiled_image_path), "Specify one of tt_device, precompiled_image_path"
+            num_devices = len(device_ids)
+
+            # Get compilation sample inputs
+            sample_inputs = inputs[0][0]
+            if isinstance(sample_inputs, dict) or isinstance(
+                sample_inputs, transformers.tokenization_utils_base.BatchEncoding
+            ):
+                sample_inputs = list(sample_inputs.values())
+            if isinstance(model, dict):
+                if benchmark_run.has_compile_inputs:
+                    sample_inputs = model["compile_inputs"]
+
+            if benchmark_run.has_forward_wrapper:
+                run_mode = RunMode.GENERATIVE
+                # Duplicate the predefined microbatch size (always 1) by the number of devices for generative run
+                compile_inputs = duplicate_batch(sample_inputs, len(device_list))
+            else:
+                run_mode = RunMode.FORWARD
+                compile_inputs = sample_inputs
+
+            if tt_device is not None:
+                image_path = os.path.join(output_dir, "parallel_tti_run.tti")
+                single_device_inputs = split_tensor_batch(compile_inputs, num_devices)[0]
+                monitor_thread = threading.Thread(target=benchmark_run.cpu_usage_monitor)
+                monitor_thread.start()
+                benchmark_run.start_compilation_timer()
+                tt_device.compile_to_image(img_path=image_path, training=False, sample_inputs=single_device_inputs)
+                benchmark_run.stop_monitoring = True
+                benchmark_run.end_compilation_timer()
+                monitor_thread.join()
+            elif precompiled_image_path is not None:
+                image_path = precompiled_image_path
+
+            pybuda.pybuda_reset()
+
+            # Provide an input sample for compilation (i.e the input for 1 loop)
+            runner = initialize_multicard_runner(
+                arch=arch,
+                device_ids=device_ids,
+                run_mode=run_mode,
+                compile_inputs=compile_inputs,
+                precompiled_tti_path=image_path,
+                output_dir=output_dir,
+            )
+
+            benchmark_run.start_benchmark_timer()
+            for loop in range(loop_count):
+                for batch, labels in inputs:
+                    if isinstance(batch, dict) or isinstance(batch, transformers.tokenization_utils_base.BatchEncoding):
+                        batch = list(batch.values())
+                    if run_mode == RunMode.FORWARD:
+                        run_result: RunResult = runner.run(ForwardInputs(run_inputs=batch))
+                    else:
+                        batch = duplicate_batch(batch, len(device_list))
+                        run_result: RunResult = runner.run(
+                            GenerativeInputs(
+                                run_inputs=batch,
+                                num_tokens_to_generate=64,
+                                write_index=0,
+                                first_current_index=32,
+                                pad_token_id=None,
+                            )
+                        )
+                    output = [
+                        pybuda.tensor.Tensor.create_from_torch(output_tensor) for output_tensor in run_result.outputs[0]
+                    ]
+
+                    if loop == 0:
+                        store_labels.append(labels)
+                        store_outputs.append(output)
+            benchmark_run.end_benchmark_timer()
+            runner.shutdown()
+
+            return store_outputs
 
         # Set default configuration type
         pybuda.config.set_configuration_options(default_df_override=df_from_str(args.dataformat))
@@ -145,7 +267,7 @@ def run(
                 img.info()
                 device = pybuda.TTDevice.load_image(img=img)
             else:
-                if args.save_tti:
+                if args.save_tti or (args.parallel_tti and not args.load_tti):
                     print(f"Saving TTDevice Image to: {args.save_tti}")
                 device = pybuda.TTDevice(
                     "tt0",
@@ -191,134 +313,157 @@ def run(
         else:
             targets = tuple()
 
-        if isinstance(model, dict):
-            if args.save_tti:
-                device.compile_to_image(
-                    img_path=args.save_tti,
+        # Compile model
+        if not args.parallel_tti:
+            if isinstance(model, dict):
+                if args.save_tti:
+                    device.compile_to_image(
+                        img_path=args.save_tti,
+                        training=args.training,
+                        sample_inputs=sample_inputs,
+                        sample_targets=targets,
+                    )
+                    print(f"Pybuda successfully compiled model to: {args.save_tti}")
+                    exit(0)
+
+                if "verify_cfg" in model.keys():
+                    verify_cfg = model["verify_cfg"]
+                else:
+                    verify_cfg = pybuda.verify.VerifyConfig(verify_pybuda_codegen_vs_framework=True)
+
+                # Compilation run
+                monitor_thread = threading.Thread(target=benchmark_run.cpu_usage_monitor)
+                monitor_thread.start()
+                benchmark_run.start_compilation_timer()
+                output_q = pybuda.initialize_pipeline(
                     training=args.training,
                     sample_inputs=sample_inputs,
+                    _verify_cfg=verify_cfg,
                     sample_targets=targets,
                 )
-                print(f"Pybuda successfully compiled model to: {args.save_tti}")
-                exit(0)
-
-            if "verify_cfg" in model.keys():
-                verify_cfg = model["verify_cfg"]
-            else:
-                verify_cfg = pybuda.verify.VerifyConfig(verify_pybuda_codegen_vs_framework=True)
-
-            # Compilation run
-            monitor_thread = threading.Thread(target=benchmark_run.cpu_usage_monitor)
-            monitor_thread.start()
-            benchmark_run.start_compilation_timer()
-            output_q = pybuda.initialize_pipeline(
-                training=args.training,
-                sample_inputs=sample_inputs,
-                _verify_cfg=verify_cfg,
-                sample_targets=targets,
-            )
-            benchmark_run.stop_monitoring = True
-            benchmark_run.end_compilation_timer()
-            monitor_thread.join()
-            if not benchmark_run.has_forward_wrapper:
-                # Prepare a thread pushing inputs
-                def push_inputs_thread():
-                    for loop in range(args.loop_count):
-                        for batch, labels in input_data:
-                            if pybuda.error_raised():
-                                print(" * Aborting input thread due to error")
-                                return
-                            if isinstance(batch, dict):
-                                device.push_to_inputs(list(batch.values()))
-                            else:
-                                device.push_to_inputs(batch)
-                            if loop == 0:
-                                store_labels.append(labels)
-
-                input_thread = threading.Thread(target=push_inputs_thread)
-
-                # Prepare a threading popping outputs
-                def pop_outputs_thread(output_q):
-                    if args.dump_intermediate:
-                        intermediates_queue = pybuda.get_intermediates_queue()
-                        torch.set_printoptions(
-                            threshold=100000000,
-                            linewidth=300,
-                            precision=4,
-                            sci_mode=False,
-                        )
-                    number_of_samples = len(generator)
-                    for i in range(args.loop_count * number_of_samples):
-                        while True:
-                            try:
-                                output = output_q.get()
-                                if args.dump_intermediate:
-                                    intermed = intermediates_queue.get()
-                                    if i < args.dump_intermediate_count:
-                                        # Dump text log file for human consumption
-                                        with open(
-                                            f"intermed_{args.dump_intermediate_tag}.log",
-                                            "w",
-                                        ) as f:
-                                            for tns in intermed:
-                                                f.write(f"intermed input {i}: len={len(intermed)} \n")
-                                                f.write(f"{tns}\n")
-                                        # Pickle the array of intermediate values and write to a binary file to be checked off-line
-                                        with open(
-                                            f"intermed_{args.dump_intermediate_tag}.p",
-                                            "wb",
-                                        ) as f:
-                                            pickle.dump(intermed, f)
-
-                                if i < number_of_samples:
-                                    store_outputs.append(output)
-                                break  # got data, break out of forever loop
-                            except queue.Empty:
+                benchmark_run.stop_monitoring = True
+                benchmark_run.end_compilation_timer()
+                monitor_thread.join()
+                if not benchmark_run.has_forward_wrapper:
+                    # Prepare a thread pushing inputs
+                    def push_inputs_thread():
+                        for loop in range(args.loop_count):
+                            for batch, labels in input_data:
                                 if pybuda.error_raised():
-                                    print(" * Aborting output thread due to error")
+                                    print(" * Aborting input thread due to error")
                                     return
+                                if isinstance(batch, dict):
+                                    device.push_to_inputs(list(batch.values()))
+                                else:
+                                    device.push_to_inputs(batch)
+                                if loop == 0:
+                                    store_labels.append(labels)
 
-                # Set output
-                output = output_q if not args.training else pybuda.get_loss_queue()
-                output_thread = threading.Thread(target=pop_outputs_thread, args=(output,))
-                output_thread.start()
+                    input_thread = threading.Thread(target=push_inputs_thread)
 
-                # Sync - Make sure all process setup, compile, etc. is done
-                pybuda.sync()
+                    # Prepare a threading popping outputs
+                    def pop_outputs_thread(output_q):
+                        if args.dump_intermediate:
+                            intermediates_queue = pybuda.get_intermediates_queue()
+                            torch.set_printoptions(
+                                threshold=100000000,
+                                linewidth=300,
+                                precision=4,
+                                sci_mode=False,
+                            )
+                        number_of_samples = len(generator)
+                        for i in range(args.loop_count * number_of_samples):
+                            while True:
+                                try:
+                                    output = output_q.get()
+                                    if args.dump_intermediate:
+                                        intermed = intermediates_queue.get()
+                                        if i < args.dump_intermediate_count:
+                                            # Dump text log file for human consumption
+                                            with open(
+                                                f"intermed_{args.dump_intermediate_tag}.log",
+                                                "w",
+                                            ) as f:
+                                                for tns in intermed:
+                                                    f.write(f"intermed input {i}: len={len(intermed)} \n")
+                                                    f.write(f"{tns}\n")
+                                            # Pickle the array of intermediate values and write to a binary file to be checked off-line
+                                            with open(
+                                                f"intermed_{args.dump_intermediate_tag}.p",
+                                                "wb",
+                                            ) as f:
+                                                pickle.dump(intermed, f)
 
-                # Start input thread
-                input_thread.start()
-                time.sleep(2)  # Let the input thread start up and transfer initial data
-        else:
-            # Compilation loop for pybuda_pipeline models
-            monitor_thread = threading.Thread(target=benchmark_run.cpu_usage_monitor)
-            monitor_thread.start()
-            benchmark_run.start_compilation_timer()
-            sample_inputs = input_data[0][0]
-            _ = model(sample_inputs, batch_size=args.microbatch)
-            benchmark_run.stop_monitoring = True
-            benchmark_run.end_compilation_timer()
-            monitor_thread.join()
+                                    if i < number_of_samples:
+                                        store_outputs.append(output)
+                                    break  # got data, break out of forever loop
+                                except queue.Empty:
+                                    if pybuda.error_raised():
+                                        print(" * Aborting output thread due to error")
+                                        return
 
+                    # Set output
+                    output = output_q if not args.training else pybuda.get_loss_queue()
+                    output_thread = threading.Thread(target=pop_outputs_thread, args=(output,))
+                    output_thread.start()
+
+                    # Sync - Make sure all process setup, compile, etc. is done
+                    pybuda.sync()
+
+                    # Start input thread
+                    input_thread.start()
+                    time.sleep(2)  # Let the input thread start up and transfer initial data
+            else:
+                # Compilation loop for pybuda_pipeline models
+                monitor_thread = threading.Thread(target=benchmark_run.cpu_usage_monitor)
+                monitor_thread.start()
+                benchmark_run.start_compilation_timer()
+                sample_inputs = input_data[0][0]
+                _ = model(sample_inputs, batch_size=args.microbatch)
+                benchmark_run.stop_monitoring = True
+                benchmark_run.end_compilation_timer()
+                monitor_thread.join()
+
+    # Run benchmark
     if args.device == "tt" and isinstance(model, dict):
-        benchmark_run.start_benchmark_timer()
-        if benchmark_run.has_forward_wrapper:
-            for loop in range(args.loop_count):
-                for batch, labels in input_data:
-                    output = model["forward_wrapper"](
-                        batch=batch,
-                        output_q=output_q,
-                        device=device,
-                    )
-                    if loop == 0:
-                        store_labels.append(labels)
-                        store_outputs.append(output)
-        else:
-            pybuda.run_forward(input_count=(args.loop_count * len(generator)))
-            input_thread.join()
-            output_thread.join()
+        if args.parallel_tti:
+            assert not args.training, "Training not supported in parallel tti run"
+            assert args.chips == 1, "Parallel TTI only supported for single chip models"
+            assert len(device_list) > 0
+            device_ids = [[i] for i in range(len(device_list))]
+            precompiled_image_path = args.load_tti if args.load_tti else None
+            tt_device = None if args.load_tti else device
 
-        benchmark_run.end_benchmark_timer()
+            store_outputs = data_parallel_tti_run(
+                arch=arch,
+                inputs=input_data,
+                loop_count=args.loop_count,
+                output_dir=args.parallel_tti,
+                device_ids=device_ids,
+                benchmark_run=benchmark_run,
+                tt_device=tt_device,
+                precompiled_image_path=precompiled_image_path,
+            )
+
+        else:
+            benchmark_run.start_benchmark_timer()
+            if benchmark_run.has_forward_wrapper:
+                for loop in range(args.loop_count):
+                    for batch, labels in input_data:
+                        output = model["forward_wrapper"](
+                            batch=batch,
+                            output_q=output_q,
+                            device=device,
+                        )
+                        if loop == 0:
+                            store_labels.append(labels)
+                            store_outputs.append(output)
+            else:
+                pybuda.run_forward(input_count=(args.loop_count * len(generator)))
+                input_thread.join()
+                output_thread.join()
+
+            benchmark_run.end_benchmark_timer()
 
         # Combine outputs for data parallel runs
         if os.environ.get("PYBUDA_N300_DATA_PARALLEL", "0") == "1":
@@ -501,6 +646,12 @@ if __name__ == "__main__":
         action="store_true",
         help="Store samples and model output per sample in text file for debugging.",
     )
+    parser.add_argument(
+        "--parallel_tti",
+        default="",
+        type=str,
+        help="Save compilation for TTDevice into a TTI-archive configured for silicon to file and run it in parallel. (specify directory path to save archive and dump outputs).",
+    )
     args = parser.parse_args()
 
     # Get all available models
@@ -542,9 +693,15 @@ if __name__ == "__main__":
         print(models[args.model]["configs"])
         exit(1)
 
-    if args.load_tti and args.save_tti:
-        print("Specify only one of `--load_tti` or `--save-tti`")
+    if sum([bool(args.save_tti), bool(args.parallel_tti)]) > 1:
+        print("Specify only one of `--save_tti`, `--parallel_tti`")
         exit(1)
+
+    if args.parallel_tti:
+        assert not args.training, "Training not supported in parallel tti run"
+        print("Overriding args.chips to 1 since parallel_tti is set")
+        args.chips = 1
+        print(f"Saving TTDevice Image and output artefacts to: {args.parallel_tti}")
 
     if args.env != "":
         envs = args.env.split(" ")
