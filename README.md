@@ -202,6 +202,15 @@ You can find example commands for various conditions in the file:
 
 - `run_benchmark_tt_perf` for TT and `run_benchmark_cuda` GPU & CPU devices
 
+## Running On Multi-Device
+
+To run the benchmarks on multichip or multicard systems,
+
+* n300 (multichip)
+   * Set env variable `PYBUDA_N300_DATA_PARALLEL=1`
+* TT-LoudBox / TT-QuietBox (multicard)
+   * set env variable `PYBUDA_FORCE_THREADS=1` and set config `--parallel_tti device_images/`
+
 ## Contributing
 
 We are excited to move our development to the public, open-source domain. However, we are not adequately staffed to review contributions in an expedient and manageable time frame at this time. In the meantime, please review the [contributor's guide](CONTRIBUTING.md) for more information about contribution standards.
