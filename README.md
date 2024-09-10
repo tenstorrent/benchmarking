@@ -4,26 +4,26 @@ Repository for AI model benchmarking on accelerator hardware.
 
 ## Performance Table
 
-| Model                                                      | Input Size          | Batch      | Grayskull e75  | Grayskull e150   | Wormhole n150 | Wormhole n300 (single-chip) | Wormhole n300 (dual-chip) |
-|----------------------------------------------------------  |---------------------|----------- |----------------|------------------|---------------|-----------------------------|---------------------------|
-| [BERT-Large](./benchmark/models/bert) (sen/s)              | 384                 | 64         | 83             | 99               | 118           | x                           | TBD                       |
-| [T5-Large](./benchmark/models/t5) (tok/s)                  | 64                  | 1          | 24             | 31               | 75            | 65                          | TBD                       |
-| [FLAN-T5-Large](./benchmark/models/flant5) (tok/s)         | 64                  | 1          | 9              | 25               | 70            | 65                          | TBD                       |
-| [Whisper-Small](./benchmark/models/whisper) (tok/s)        | 30s                 | 1          | x              | x                | 9             | 9                           | TBD                       |
-| [Falcon-7B](./benchmark/models/falcon) (tok/s)             | 128                 | 32         | x              | x                | 72            | 68                          | TBD                       |
-| [SD v1-4](./benchmark/models/stable_diffusion) (s/img)     | 512x512             | 1          | x              | x                | 100           | 50                          | TBD                       |
-| [ResNet50](./benchmark/models/resnet) (img/s)              | 3x224x224           | 256        | 1116           | 1404             | 2893          | 1066                        | TBD                       |
-| [VoVNet-V2](./benchmark/models/vovnet) (img/s)             | 3x224x224           | 128        | 516            | 819              | 1604          | 1199                        | TBD                       |
-| [MobileNetV1](./benchmark/models/mobilenetv1) (img/s)      | 3x224x224           | 128        | 2463           | 2912             | 3110          | 2283                        | TBD                       |
-| [MobileNetV2](./benchmark/models/mobilenetv2) (img/s)      | 3x224x224           | 256        | 1143           | 1490             | 2771          | 2433                        | TBD                       |
-| [MobileNetV3](./benchmark/models/mobilenetv3) (img/s)      | 3x224x224           | 64         | 1191           | 1267             | 1986          | 1632                        | TBD                       |
-| [HRNet-V2](./benchmark/models/hrnet) (img/s)               | 3x224x224           | 128        | 140            | 231              | 324           | 258                         | TBD                       |
-| [ViT-Base](./benchmark/models/vit) (img/s)                 | 3x224x224           | 64         | 301            | 363              | 539           | 446                         | TBD                       |
-| [DeiT-Base](./benchmark/models/deit) (img/s)               | 3x224x224           | 64         | 302            | 362              | 539           | 446                         | TBD                       |
-| [YOLOv5-Small](./benchmark/models/yolo_v5) (img/s)         | 3x320x320           | 128        | 276            | 221              | 1191          | 1166                        | TBD                       |
-| [OpenPose-2D](./benchmark/models/openpose) (img/s)         | 3x224x224           | 64         | 885            | 1311             | 1260          | 1195                        | TBD                       |
-| [U-Net](./benchmark/models/unet) (img/s)                   | 3x256x256           | 48         | 223            | 272              | 494           | 399                         | TBD                       |
-| [Inception-v4](./benchmark/models/inception_v4) (img/s)    | 3x224x224           | 128        | 371            | 458              | 1060          | 1118                        | TBD                       |
+| Model                                                      | Input Size          | Batch      | Grayskull e75  | Grayskull e150   | Wormhole n150 | Wormhole n300 (single-chip) | Wormhole n300 (dual-chip) | TT-LoudBox/TT-QuietBox (4 MMIO chip) |
+|----------------------------------------------------------  |---------------------|----------- |----------------|------------------|---------------|-----------------------------|---------------------------|---------------------------|
+| [BERT-Large](./benchmark/models/bert) (sen/s)              | 384                 | 64         | 81             | 99               | 118           | x                           | x                         | x                         |
+| [T5-Large](./benchmark/models/t5) (tok/s)                  | 64                  | 1          | 25             | 30               | 75            | 68                          | x                         | x                         |
+| [FLAN-T5-Large](./benchmark/models/flant5) (tok/s)         | 64                  | 1          | 9              | 25               | 71            | 52                          | x                         | x                         |
+| [Whisper-Small](./benchmark/models/whisper) (tok/s)        | 30s                 | 1          | 3.4            | 3.7              | 16            | 10                          | x                         | x                         |
+| [Falcon-7B](./benchmark/models/falcon) (tok/s)             | 128                 | 32         | x              | x                | 76            | 77                          | x                         | x                         |
+| [SD v1-4](./benchmark/models/stable_diffusion) (s/img)     | 512x512             | 1          | x              | x                | 50            | 50                          | x                         | x                         |
+| [ResNet50](./benchmark/models/resnet) (img/s)              | 3x224x224           | 256        | 1106           | 1410             | 2891          | 1060                        | 2000                      | 3315                         |
+| [VoVNet-V2](./benchmark/models/vovnet) (img/s)             | 3x224x224           | 128        | 518            | 819              | 1603          | 1197                        | 1931                      | 2860                         |
+| [MobileNetV1](./benchmark/models/mobilenetv1) (img/s)      | 3x224x224           | 128        | 2468           | 2924             | 3102          | 2338                        | 2978                      | 4334                         |
+| [MobileNetV2](./benchmark/models/mobilenetv2) (img/s)      | 3x224x224           | 256        | 1141           | 1491             | 2721          | 2439                        | 4332                      | 4579                         |
+| [MobileNetV3](./benchmark/models/mobilenetv3) (img/s)      | 3x224x224           | 64         | 1192           | 1741             | 1981          | 1670                        | 2017                      | 2695                         |
+| [HRNet-V2](./benchmark/models/hrnet) (img/s)               | 3x224x224           | 128        | 197            | 233              | 324           | 257                         | 269                       | 845                         |
+| [ViT-Base](./benchmark/models/vit) (img/s)                 | 3x224x224           | 64         | 301            | 363              | 540           | 447                         | 546                       | 970                         |
+| [DeiT-Base](./benchmark/models/deit) (img/s)               | 3x224x224           | 64         | 301            | 363              | 539           | 446                         | 545                       | 973                         |
+| [YOLOv5-Small](./benchmark/models/yolo_v5) (img/s)         | 3x320x320           | 128        | 290            | 232              | 1190          | 1090                        | 1435                      | x                         |
+| [OpenPose-2D](./benchmark/models/openpose) (img/s)         | 3x224x224           | 64         | 828            | 1098             | 1252          | 1204                        | 1805                      | 1542                         |
+| [U-Net](./benchmark/models/unet) (img/s)                   | 3x256x256           | 48         | 222            | 268              | 490           | 344                         | 547                       | 455                         |
+| [Inception-v4](./benchmark/models/inception_v4) (img/s)    | 3x224x224           | 128        | 371            | 458              | 567           | 1116                        | 1810                      | 2795                         |
 
 ## Setup Instructions
 
