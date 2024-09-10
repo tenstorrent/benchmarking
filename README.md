@@ -153,7 +153,7 @@ To set up the three required datasets for running benchmarking tests within this
 
    ```bash
    # use another location for MLDATA_DIR if desired, below is default;
-   # Download and move the downloaded archive and unzip within the llgg_segmentation folder.
+   # Download and move the downloaded archive and unzip within the lgg_segmentation folder.
    mkdir -p ~/.cache/mldata/lgg_segmentation
    cd ~/.cache/mldata/lgg_segmentation
    # download and move the archive here then unzip
