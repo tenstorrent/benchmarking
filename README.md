@@ -36,7 +36,7 @@ Installation instructions can be found at [Install TT-BUDA](https://github.com/t
 Next, install the model requirements:
 
 ```bash
-pip install -r requirements.txt
+pip install -r requirements.txt --constraint constraints.txt
 ```
 
 ### Installing on a System with a GPU
