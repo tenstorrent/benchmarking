@@ -206,10 +206,10 @@ You can find example commands for various conditions in the file:
 
 To run the benchmarks on multichip or multicard systems,
 
-* n300 (multichip)
-   * Set env variable `PYBUDA_N300_DATA_PARALLEL=1`
-* TT-LoudBox / TT-QuietBox (multicard)
-   * set env variable `PYBUDA_FORCE_THREADS=1` and set config `--parallel_tti device_images/`
+- n300 (multichip)
+  - Set env variable `PYBUDA_N300_DATA_PARALLEL=1`
+- TT-LoudBox / TT-QuietBox (multicard)
+  - set env variable `PYBUDA_FORCE_THREADS=1` and set config `--parallel_tti device_images/`
 
 ## Contributing
 
