@@ -21,13 +21,7 @@ def whisper_enc_dec(training: bool, task: str, config: str, microbatch: int, dev
     from pybuda._C.backend_api import BackendDevice
 
     compiler_cfg = pybuda.config._get_global_compiler_config()
-    # os.environ["TT_BACKEND_TIMEOUT"] = "3600"
-    # compiler_cfg.dont_fuse("subtract_634")
     os.environ["PYBUDA_DISABLE_MASKED_FILL_V2"] = "1"
-
-    # compiler_cfg.enable_auto_transposing_placement = True
-    # compiler_cfg.amp_level = 2
-    # compiler_cfg.enable_auto_fusing = False
 
     if compiler_cfg.balancer_policy == "default":
         compiler_cfg.balancer_policy = "Ribbon"
