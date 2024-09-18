@@ -23,7 +23,7 @@ Repository for AI model benchmarking on accelerator hardware.
 | [YOLOv5-Small](./benchmark/models/yolo_v5) (img/s)         | 3x320x320           | 128        | 290            | 232              | 1190          | 1090                        | 1435                      | x                         | x                         |
 | [OpenPose-2D](./benchmark/models/openpose) (img/s)         | 3x224x224           | 64         | 828            | 1098             | 1252          | 1204                        | 1805                      | 1542                         | 1438                         |
 | [U-Net](./benchmark/models/unet) (img/s)                   | 3x256x256           | 48         | 222            | 268              | 490           | 344                         | 547                       | 455                         | x                         |
-| [Inception-v4](./benchmark/models/inception_v4) (img/s)    | 3x224x224           | 128        | 371            | 458              | 567           | 1116                        | 1810                      | 2795                         | 3162                         |
+| [Inception-v4](./benchmark/models/inception_v4) (img/s)    | 3x224x224           | 128        | 371            | 458              | 1061          | 1116                        | 1810                      | 2795                         | 3162                         |
 
 ## Setup Instructions
 
