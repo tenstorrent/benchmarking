@@ -13,6 +13,7 @@ generated_modules/
 *.ipynb
 *.json
 *.pt
+device_images/
 
 # Environments
 .env

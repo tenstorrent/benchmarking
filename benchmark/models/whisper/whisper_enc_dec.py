@@ -21,7 +21,7 @@ def whisper_enc_dec(training: bool, task: str, config: str, microbatch: int, dev
     from pybuda._C.backend_api import BackendDevice
 
     compiler_cfg = pybuda.config._get_global_compiler_config()
-    compiler_cfg.dont_fuse("subtract_634")
+    os.environ["PYBUDA_DISABLE_MASKED_FILL_V2"] = "1"
 
     if compiler_cfg.balancer_policy == "default":
         compiler_cfg.balancer_policy = "Ribbon"
