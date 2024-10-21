@@ -8,12 +8,15 @@ from datasets import load_dataset
 from torch.utils.data import DataLoader
 from transformers import AutoFeatureExtractor, ResNetForImageClassification
 
+from torchvision import transforms
+import onnx
+
 from ...common import DummyCVDataset, ImageNetDataset, benchmark_model, torch_df_from_str
 
-
-@benchmark_model(configs=["resnet18", "resnet50"])
+@benchmark_model(configs=["resnet18", "resnet50","resnet50_onnx"])
 def resnet(training: bool, task: str, config: str, microbatch: int, device: str, data_type: str):
 
+    script_dir = os.path.dirname(os.path.realpath(__file__))
     if device == "tt":
         import pybuda
         from pybuda._C.backend_api import BackendDevice
@@ -51,6 +54,8 @@ def resnet(training: bool, task: str, config: str, microbatch: int, device: str,
     elif config == "resnet50":
         model_name = "microsoft/resnet-50"
         target_microbatch = 64
+    elif config == "resnet50_onnx":
+        target_microbatch = 64
     else:
         raise RuntimeError("Unknown config")
 
@@ -58,21 +63,30 @@ def resnet(training: bool, task: str, config: str, microbatch: int, device: str,
     if microbatch == 0:
         microbatch = target_microbatch
 
+    print(script_dir)
+    load_local_path = script_dir + "/resnet50.onnx"
+
     # Task specific configuration
     if task == "na":
 
         # Load model
-        model = ResNetForImageClassification.from_pretrained(model_name)
-
-        # Configure model mode for training or evaluation
-        if training:
-            model.train()
+        if config == "resnet50_onnx":
+            model = onnx.load(load_local_path)
         else:
-            model.eval()
+            model = ResNetForImageClassification.from_pretrained(model_name)
+
+            # Configure model mode for training or evaluation
+            if training:
+                model.train()
+            else:
+                model.eval()
 
         # Create model device placement map
         if device == "tt":
-            model = {"device": pybuda.PyTorchModule(f"pt_{config}", model)}
+            if config == "resnet50_onnx":
+                model = {"device":pybuda.OnnxModule(f"on_{config}", model, load_local_path)}
+            else:
+                model = {"device": pybuda.PyTorchModule(f"pt_{config}", model)}
         else:
             model = model.to(device, dtype=torch_df_from_str(data_type))
 
@@ -86,18 +100,24 @@ def resnet(training: bool, task: str, config: str, microbatch: int, device: str,
     elif task == "image_classification":
 
         # Load model & feature extractor
-        model = ResNetForImageClassification.from_pretrained(model_name)
-        feature_extractor = AutoFeatureExtractor.from_pretrained(model_name)
-
-        # Configure model mode for training or evaluation
-        if training:
-            model.train()
+        if config == "resnet50_onnx":
+            model = onnx.load(load_local_path)
+            feature_extractor = AutoFeatureExtractor.from_pretrained("microsoft/resnet-50")
         else:
-            model.eval()
+            model = ResNetForImageClassification.from_pretrained(model_name)
+            feature_extractor = AutoFeatureExtractor.from_pretrained(model_name)
+            # Configure model mode for training or evaluation
+            if training:
+                model.train()
+            else:
+                model.eval()
 
         # Create model device placement map
         if device == "tt":
-            model = {"device": pybuda.PyTorchModule(f"pt_{config}", model)}
+            if config == "resnet50_onnx":
+                model = {"device":pybuda.OnnxModule(f"on_{config}", model, load_local_path)}
+            else:
+                model = {"device": pybuda.PyTorchModule(f"pt_{config}", model)}
         else:
             model = model.to(device, dtype=torch_df_from_str(data_type))
 
