@@ -119,6 +119,8 @@ def resnet(training: bool, task: str, config: str, microbatch: int, device: str,
             else:
                 model = {"device": pybuda.PyTorchModule(f"pt_{config}", model)}
         else:
+            from onnx2pytorch import ConvertModel
+            model = ConvertModel(model)
             model = model.to(device, dtype=torch_df_from_str(data_type))
 
         # Create random inputs and targets

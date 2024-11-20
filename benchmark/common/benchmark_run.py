@@ -152,8 +152,12 @@ class BenchmarkRun:
             import pybuda
 
             self.device_list = pybuda.detect_available_devices()
-            self.arch = self.device_list[0]
-            self.device_name = str(self.arch).split(".", 1)[1]
+            if self.device_list != []:
+                self.arch = self.device_list[0]
+                self.device_name = str(self.arch).split(".", 1)[1]
+            else:
+                self.arch = pybuda.BackendDevice.Wormhole_B0
+                self.device_name = str(self.arch).split(".", 1)[1]
         elif self.device_type == DeviceType.CUDA:
             import nvidia_smi
 

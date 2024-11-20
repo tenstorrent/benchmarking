@@ -45,6 +45,8 @@ import benchmark.models.vovnet.vovnet_v2
 import benchmark.models.whisper.whisper
 import benchmark.models.whisper.whisper_enc_dec
 import benchmark.models.yolo_v5.yolo_v5
+import benchmark.models.centernet.centernet
+
 
 # Common functions
 from benchmark.common import get_models, store_model_output, torch_df_from_str
@@ -245,7 +247,7 @@ def run(
         # the one being used with api calls like pybuda.run_forward(..). We'll fetch
         # the arch from the first device-type available
         device_list = pybuda.detect_available_devices()
-        if len(device_list) == 0:
+        if len(device_list) == 0 and not args.save_tti:
             raise RuntimeError("No Tenstorrent devices found. pybuda.detect_available_devices() returns no devices.")
 
         if args.chips == 0:
@@ -256,7 +258,10 @@ def run(
             )
 
         logger.info(f"args.chips:={args.chips}")
-        arch = device_list[0]
+        if len(device_list) == 0 and args.save_tti:
+            arch = pybuda.BackendDevice.Wormhole_B0
+        else:
+            arch = device_list[0]
 
         # Place device modules
         if isinstance(model, dict):
@@ -352,6 +357,7 @@ def run(
                                 if pybuda.error_raised():
                                     print(" * Aborting input thread due to error")
                                     return
+
                                 if isinstance(batch, dict):
                                     device.push_to_inputs(list(batch.values()))
                                 else:

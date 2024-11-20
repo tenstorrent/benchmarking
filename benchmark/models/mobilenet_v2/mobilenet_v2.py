@@ -3,6 +3,7 @@
 
 import os
 
+import onnx
 import torch
 from datasets import load_dataset
 from torch.utils.data import DataLoader
@@ -11,7 +12,7 @@ from transformers import AutoImageProcessor, AutoModelForImageClassification
 from ...common import DummyCVDataset, ImageNetDataset, benchmark_model, torch_df_from_str
 
 
-@benchmark_model(configs=["224", "160", "96"])
+@benchmark_model(configs=["224", "160", "96","onnx_seg"])
 def mobilenetv2(training: bool, task: str, config: str, microbatch: int, device: str, data_type: str):
 
     if device == "tt":
@@ -66,6 +67,11 @@ def mobilenetv2(training: bool, task: str, config: str, microbatch: int, device:
         model_name = "google/mobilenet_v2_0.35_96"
         img_res = 96
         target_microbatch = 32
+    elif config == "onnx_seg":
+        model_name =     script_dir = os.path.dirname(os.path.realpath(__file__)) + "/mymnv2.onnx"
+        target_microbatch = 32
+        img_res_v = 512
+        img_res_h = 1024
     else:
         raise RuntimeError("Unknown config")
 
@@ -74,25 +80,34 @@ def mobilenetv2(training: bool, task: str, config: str, microbatch: int, device:
         microbatch = target_microbatch
 
     # Task specific configuration
+
     if task == "na":
-
-        # Load model
-        model = AutoModelForImageClassification.from_pretrained(model_name)
-
-        # Configure model mode for training or evaluation
-        if training:
-            model.train()
+        if config == "onnx_seg":
+            pass
+            model = onnx.load(model_name)
+            if device == "tt":
+                model = {"device": pybuda.OnnxModule(f"onnx_mobilenetv2_seg", model,model_name)}
+            else:
+                model = model.to(device, dtype=torch_df_from_str(data_type))
+            dataset = DummyCVDataset(microbatch=microbatch, channels=3, height=img_res_v, width=img_res_h, data_type=data_type)
         else:
-            model.eval()
+            # Load model
+            model = AutoModelForImageClassification.from_pretrained(model_name)
 
-        # Create model device placement map
-        if device == "tt":
-            model = {"device": pybuda.PyTorchModule(f"pt_mobilenetv2_{config}", model)}
-        else:
-            model = model.to(device, dtype=torch_df_from_str(data_type))
+            # Configure model mode for training or evaluation
+            if training:
+                model.train()
+            else:
+                model.eval()
 
-        # Create random inputs and targets
-        dataset = DummyCVDataset(microbatch=microbatch, channels=3, height=img_res, width=img_res, data_type=data_type)
+            # Create model device placement map
+            if device == "tt":
+                model = {"device": pybuda.PyTorchModule(f"pt_mobilenetv2_{config}", model)}
+            else:
+                model = model.to(device, dtype=torch_df_from_str(data_type))
+
+            # Create random inputs and targets
+            dataset = DummyCVDataset(microbatch=microbatch, channels=3, height=img_res, width=img_res, data_type=data_type)
 
         # Define evaluation function
         def eval_fn(**kwargs):
@@ -143,7 +158,20 @@ def mobilenetv2(training: bool, task: str, config: str, microbatch: int, device:
             eval_score = accuracy_metric.compute(references=true_labels, predictions=pred_labels)
 
             return eval_score["accuracy"]
+    elif task == "semantic_segmentation":
+        if config != 'onnx_seg':
+            raise RuntimeError("Unsupported model configuration")
+        else:
+            model = onnx.load(model_name)
+            if device == "tt":
+                model = {"device": pybuda.OnnxModule(f"onnx_mobilenetv2_seg", model,model_name)}
+            else:
+                model = model.to(device, dtype=torch_df_from_str(data_type))
 
+            #dataset = DummyCVDataset(microbatch=microbatch, channels=3, height=img_res_v, width=img_res_h, data_type=data_type)
+            # Define evaluation function
+            def eval_fn(**kwargs):
+                return 0.0
     else:
         raise RuntimeError("Unknown task")
 
