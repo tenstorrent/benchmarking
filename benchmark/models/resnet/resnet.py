@@ -45,7 +45,7 @@ def resnet(training: bool, task: str, config: str, microbatch: int, device: str,
             os.environ["PYBUDA_RIBBON2_CALCULATE_TARGET_CYCLES_APPLY_FILTERING"] = "1"
 
         if data_type == "Bfp8_b":
-            pybuda.config.configure_mixed_precision(name_regex="input.*add.*", output_df=pybuda.DataFormat.Float16_b)
+            pybuda.config.configure_mixed_precision(name_regex="softmax_124.*", output_df=pybuda.DataFormat.Float16_b)
 
     # Set model parameters based on chosen task and model configuration
     if config == "resnet18":
