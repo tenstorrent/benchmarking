@@ -1,3 +1,9 @@
+## ⚠️ Important Info
+
+This repository is **only** for TT-Buda. For benchmarks using the TT-Metalium SDK please refer to: <https://github.com/tenstorrent/tt-metal/blob/main/README.md>
+
+
+
 # Benchmarking
 
 Repository for AI model benchmarking on accelerator hardware.
